@@ -1,5 +1,5 @@
 "use client";
-import { Divider, Layout, notification } from "antd";
+import { Layout, notification } from "antd";
 import React, { createContext, useEffect } from "react";
 import { useSelector } from "react-redux";
 import SearchForm from "../SearchForm";
@@ -59,7 +59,6 @@ const Main = () => {
                 }}
             >
                 <SearchForm />
-                <Divider />
             </Layout.Content>
             <NovelList emptyText={loading ? "加载中..." : "没有找到相关小说"} />
         </NotificationContext.Provider>

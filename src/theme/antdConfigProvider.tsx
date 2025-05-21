@@ -49,6 +49,7 @@ const ThemeConfigProvider = ({ children }: { children: React.ReactNode }) => {
                         boxShadowSecondary: "0 6px 16px rgba(0, 0, 0, 0.15)",
                     },
                 },
+                cssVar: true,
             }}
         >
             <App>{children}</App>

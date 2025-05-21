@@ -18,7 +18,7 @@ const Toolbar: React.FC = () => {
     return (
         <FloatButton.Group
             trigger="hover"
-            style={{ right: 24, bottom: 24 }}
+            style={{ right: 12, bottom: 155 }}
             icon={<ArrowUpOutlined />}
         >
             <FloatButton.BackTop

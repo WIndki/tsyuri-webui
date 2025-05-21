@@ -93,7 +93,7 @@ const NovelList: React.FC<NovelListProps> = ({ emptyText = "暂无小说" }) => 
                     textAlign: "center",
                     marginTop: 16,
                     marginBottom: 16,
-                    height: 32,
+                    height: "160px",
                 }}
             >
                 {loading && <Spin />}

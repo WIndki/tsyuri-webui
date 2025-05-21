@@ -29,7 +29,16 @@ const SearchInput: React.FC<SearchInputProps> = ({ onSubmit }) => {
                     boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
                     borderRadius: "8px",
                 }}
-                onSearch={() => onSubmit && onSubmit()}
+                onSearch={() => {
+                    // 取消输入框的焦点
+                    if (document.activeElement instanceof HTMLElement) {
+                        document.activeElement.blur();
+                    }
+                    // 执行原有的onSubmit回调
+                    if (onSubmit) {
+                        onSubmit();
+                    }
+                }}
             />
         </Form.Item>
     );

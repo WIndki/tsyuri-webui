@@ -1,6 +1,5 @@
-import React, { useContext } from "react";
+import React from "react";
 import {
-    Modal,
     Typography,
     Descriptions,
     Tag,
@@ -8,24 +7,26 @@ import {
     Image,
     Space,
     Button,
+    App,
+    Spin,
 } from "antd";
 import type { Book } from "@/types/book";
-import { NotificationContext } from "../Main";
 
 const { Title, Paragraph } = Typography;
 
 interface BookDetailModalProps {
     book: Book;
-    visible: boolean;
-    onClose: () => void;
+    // visible: boolean;
+    // onClose: () => void;
 }
 
 const BookDetailModal: React.FC<BookDetailModalProps> = ({
     book,
-    visible,
-    onClose,
+    // visible,
+    // onClose,
 }) => {
-    const { api: notificationApi } = useContext(NotificationContext);
+    // const { api: notificationApi } = useContext(NotificationContext);
+    const { notification } = App.useApp();
 
     // 格式化标签显示
     const renderTags = (tagString: string) => {
@@ -53,38 +54,45 @@ const BookDetailModal: React.FC<BookDetailModalProps> = ({
     };
 
     return (
-        <Modal
-            title="小说详情"
-            open={visible}
-            onCancel={onClose}
-            footer={null}
-            width={700}
-            destroyOnClose={true}
-            destroyOnHidden={true}
-            centered={true}
-            // 添加自定义样式类
-            className="glass-modal"
-            // 自定义Modal样式
-            styles={{
-                mask: {
-                    backdropFilter: "blur(8px)",
-                    background: "rgba(0, 0, 0, 0.5)",
-                },
-                content: {
-                    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
-                },
-            }}
-        >
+        // <Modal
+        //     title="小说详情"
+        //     open={visible}
+        //     onCancel={onClose}
+        //     footer={null}
+        //     width={700}
+        //     destroyOnClose={true}
+        //     destroyOnHidden={true}
+        //     centered={true}
+        //     // 添加自定义样式类
+        //     className="glass-modal"
+        //     // 自定义Modal样式
+        //     styles={{
+        //         mask: {
+        //             backdropFilter: "blur(8px)",
+        //             background: "rgba(0, 0, 0, 0.5)",
+        //         },
+        //         content: {
+        //             boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+        //         },
+        //     }}
+        // >
+        <>
             <div
                 style={{
                     display: "flex",
                     flexWrap: "wrap",
+                    alignItems: "center",
+                    justifyContent: "center",
                     gap: "20px",
                     marginBottom: "20px",
                 }}
             >
                 <Image
-                    style={{ borderRadius: "8px", alignItems: "center" }}
+                    style={{
+                        borderRadius: "8px",
+                        objectFit: "cover",
+                    }}
+                    height={300}
                     width={200}
                     src={book.picUrl}
                     alt={book.bookName}
@@ -92,11 +100,19 @@ const BookDetailModal: React.FC<BookDetailModalProps> = ({
                     placeholder={
                         <div
                             style={{
-                                width: 200,
-                                height: 300,
-                                background: "#f0f0f0",
+                                width: "100%",
+                                height: "100%",
+                                display: "flex",
                             }}
-                        ></div>
+                        >
+                            <Spin
+                                size="large"
+                                style={{
+                                    margin: "auto",
+                                    color: "#1890ff",
+                                }}
+                            />
+                        </div>
                     }
                 />
                 <div style={{ flex: 1, minWidth: "300px" }}>
@@ -120,20 +136,58 @@ const BookDetailModal: React.FC<BookDetailModalProps> = ({
                             ).toLocaleString()}
                         </Descriptions.Item>
                     </Descriptions>
-                    <Space size={8} style={{ marginTop: "16px" }}>
+                    <Space
+                        size={8}
+                        style={{
+                            marginTop: "16px",
+                            width: "100%",
+                            display: "flex",
+                            justifyContent: "center",
+                        }}
+                    >
                         <Button
                             type="primary"
                             onClick={() => {
                                 navigator.clipboard.writeText(book.bookName);
-                                notificationApi?.success({
+                                notification.success({
                                     message: "复制成功",
                                     description: `已将 "${book.bookName}" 复制到剪贴板`,
                                     placement: "topRight",
-                                    duration: 3,
+                                    duration: 2,
                                 });
                             }}
                         >
                             复制名称
+                        </Button>
+                        <Button
+                            type="primary"
+                            onClick={() => {
+                                notification.success({
+                                    message: "即将跳转搜索引擎",
+                                    description: `将前往搜索引擎搜索 "${book.bookName}"`,
+                                    placement: "topRight",
+                                    duration: 2,
+                                    onClose: () => {
+                                        const url = `https://www.baidu.com/s?wd=${book.bookName}`;
+                                        // 判断是否为iOS设备
+                                        const deviceAgent = navigator.userAgent;
+                                        const ios = deviceAgent
+                                            .toLowerCase()
+                                            .match(
+                                                /(iphone|ipod|ipad|mac|macintosh)/
+                                            );
+                                        console.log("UA", deviceAgent);
+                                        if (ios) {
+                                            // iOS设备使用window.location.href
+                                            window.location.href = url;
+                                        } else {
+                                            window.open(url, "_blank");
+                                        }
+                                    },
+                                });
+                            }}
+                        >
+                            搜索该书
                         </Button>
                     </Space>
                 </div>
@@ -150,7 +204,8 @@ const BookDetailModal: React.FC<BookDetailModalProps> = ({
                 ))}
                 {book.purity && <Tag color="green">{book.purity}</Tag>}
             </Space>
-        </Modal>
+            {/* </Modal> */}
+        </>
     );
 };
 

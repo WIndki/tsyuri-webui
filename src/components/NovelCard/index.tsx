@@ -1,6 +1,6 @@
 "use client";
-import React, { memo, useState } from "react";
-import { Card, Typography, Tag, Space, Tooltip, Row, Col } from "antd";
+import React, { memo } from "react";
+import { Card, Typography, Tag, Space, Tooltip, Row, Col, App } from "antd";
 import {
     FileTextOutlined,
     ClockCircleOutlined,
@@ -8,6 +8,7 @@ import {
 } from "@ant-design/icons";
 import type { Book } from "../../types/book";
 import BookDetailModal from "../BookDetailModal";
+import "./novelCard.css";
 
 const { Text, Paragraph } = Typography;
 const { Meta } = Card;
@@ -17,7 +18,7 @@ interface BookCardProps {
 }
 
 const BookCard: React.FC<BookCardProps> = ({ book }) => {
-    const [showDetailModal, setShowDetailModal] = useState(false);
+    const { modal } = App.useApp();
 
     // 格式化字数显示
     const formatWordCount = (wordCount: string) => {
@@ -79,65 +80,55 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
     };
 
     const handleCardClick = () => {
-        setShowDetailModal(true);
-    };
-
-    const handleCloseModal = () => {
-        setShowDetailModal(false);
+        modal.info({
+            title: "小说详情",
+            footer: null,
+            width: 700,
+            destroyOnClose: true,
+            centered: true,
+            maskClosable: true,
+            closable: true,
+            icon: null,
+            // 添加自定义样式类
+            // className: "book-detail-modal",
+            styles: {
+                mask: {
+                    backdropFilter: "blur(8px)",
+                    background: "rgba(0, 0, 0, 0.5)",
+                },
+                content: {
+                    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+                },
+            },
+            content: <BookDetailModal book={book} />,
+        });
     };
 
     return (
         <>
             <Card
                 hoverable
-                style={{ width: "100%", borderRadius: 8 }}
+                className="novel-card"
+                onClick={handleCardClick}
                 cover={
-                    <div
-                        style={{
-                            height: 200,
-                            overflow: "hidden",
-                            position: "relative",
-                        }}
-                    >
+                    <div className="novel-card-cover">
                         <img
                             alt={book.bookName}
                             src={book.picUrl}
-                            style={{
-                                width: "100%",
-                                height: "100%",
-                                objectFit: "cover",
-                                transition: "transform 0.3s ease",
-                            }}
+                            className="novel-card-image"
                             onError={(e) => {
                                 e.currentTarget.onerror = null;
                                 e.currentTarget.src =
-                                    "/images/book-placeholder.jpg"; // 替换为默认图片路径
+                                    "/images/book-placeholder.jpg";
                             }}
                         />
-                        <div
-                            style={{
-                                position: "absolute",
-                                bottom: 0,
-                                width: "100%",
-                                background:
-                                    "linear-gradient(to top, rgba(0,0,0,0.7), transparent)",
-                                padding: "20px 10px 10px 10px",
-                            }}
-                        >
-                            <Text
-                                style={{
-                                    color: "white",
-                                    fontSize: 16,
-                                    fontWeight: "bold",
-                                }}
-                                ellipsis
-                            >
+                        <div className="novel-card-title-overlay">
+                            <Text className="novel-card-title" ellipsis>
                                 {book.bookName}
                             </Text>
                         </div>
                     </div>
                 }
-                onClick={handleCardClick}
                 actions={[
                     <Tooltip
                         key={book.id}
@@ -194,11 +185,6 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
                     }
                 />
             </Card>
-            <BookDetailModal
-                book={book}
-                visible={showDetailModal}
-                onClose={handleCloseModal}
-            />
         </>
     );
 };

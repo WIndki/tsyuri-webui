@@ -1,0 +1,31 @@
+.searchFormContainer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    /* padding: 16px; */
+    margin: 0 auto;
+    max-width: 800px;
+}
+
+.searchForm {
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    background: var(--ant-layout-body-bg);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+/* 针对不同设备的响应式调整 */
+@media (max-width: 768px) {
+    .searchFormContainer {
+        padding: 8px;
+    }
+
+    .searchForm {
+        padding: 12px;
+        border-radius: 8px;
+    }
+}

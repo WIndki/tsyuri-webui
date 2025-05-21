@@ -11,6 +11,7 @@ import {
     Typography,
     Card,
     Form,
+    ConfigProvider,
 } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 
@@ -29,7 +30,7 @@ const SelectForm: React.FC = () => {
 
     const collapseItems = [
         {
-            key: "1",
+            key: "0",
             label: (
                 <Text strong style={{ fontSize: 16 }}>
                     高级选项
@@ -250,20 +251,31 @@ const SelectForm: React.FC = () => {
     ];
 
     return (
-        <Card
-            style={{
-                borderRadius: "8px",
-                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+        <ConfigProvider
+            theme={{
+                components: {
+                    Collapse: {},
+                    Card: {
+                        bodyPadding: 0,
+                    },
+                },
             }}
         >
-            <Collapse
-                defaultActiveKey={["1"]}
-                ghost
-                expandIconPosition="end"
-                style={{ backgroundColor: "transparent" }}
-                items={collapseItems}
-            />
-        </Card>
+            <Card
+                style={{
+                    borderRadius: "8px",
+                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                }}
+            >
+                <Collapse
+                    defaultActiveKey={["1"]}
+                    ghost
+                    expandIconPosition="end"
+                    style={{ backgroundColor: "transparent" }}
+                    items={collapseItems}
+                />
+            </Card>
+        </ConfigProvider>
     );
 };
 

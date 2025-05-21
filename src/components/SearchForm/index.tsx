@@ -13,11 +13,13 @@ import {
     searchBooks,
     setSearchParams,
 } from "@/redux/slices/booksSlice";
+import styles from "./styles.module.css";
 
 const SearchForm: React.FC = () => {
     const [form] = Form.useForm();
     const dispatch = useAppDispatch();
     const { searchParams } = useSelector((state: RootState) => state.books);
+
     const handleSearch = (values: Partial<BookSearchParams>) => {
         dispatch(resetBooks()); // 重置书籍列表
         const newParams = {
@@ -58,26 +60,29 @@ const SearchForm: React.FC = () => {
     };
 
     return (
-        <Form
-            form={form}
-            onFinish={handleSubmit}
-            // initialValues={{
-            //     keyword: "",
-            //     tags: ["变百", "百合"],
-            //     sort: "last_index_update_time",
-            //     wordCountMin: "",
-            //     wordCountMax: "",
-            //     purity: "",
-            //     updatePeriod: "",
-            //     bookStatus: "",
-            //     sources: ["SF轻小说", "次元姬", "刺猬猫", "起点"],
-            // }}
-        >
-            <Flex vertical gap={16}>
-                <SearchInput onSubmit={() => form.submit()} />
-                <SelectForm />
-            </Flex>
-        </Form>
+        <div className={styles.searchFormContainer}>
+            <Form
+                form={form}
+                onFinish={handleSubmit}
+                className={styles.searchForm}
+                // initialValues={{
+                //     keyword: "",
+                //     tags: ["变百", "百合"],
+                //     sort: "last_index_update_time",
+                //     wordCountMin: "",
+                //     wordCountMax: "",
+                //     purity: "",
+                //     updatePeriod: "",
+                //     bookStatus: "",
+                //     sources: ["SF轻小说", "次元姬", "刺猬猫", "起点"],
+                // }}
+            >
+                <Flex vertical gap={16}>
+                    <SearchInput onSubmit={() => form.submit()} />
+                    <SelectForm />
+                </Flex>
+            </Form>
+        </div>
     );
 };
 

@@ -35,7 +35,7 @@ export interface ApiResponse<T> {
 export class BookSearchService {
     private baseUrl: string;
 
-    constructor(baseUrl: string = "https://tsyuri.windki.asia/api") {
+    constructor(baseUrl: string = process.env.NEXT_PUBLIC_API_URL || "/api") {
         this.baseUrl = baseUrl;
     }
 
