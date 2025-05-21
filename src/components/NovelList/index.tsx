@@ -2,41 +2,52 @@
 import React, { useEffect, useRef, useCallback, memo, useMemo } from "react";
 import { Row, Col, Spin, Empty } from "antd";
 import BookCard from "../NovelCard";
-import type { Book } from "../../types/book";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import { useAppDispatch } from "@/redux/hooks";
+import { searchBooks, setSearchParams } from "@/redux/slices/booksSlice";
 
 interface NovelListProps {
-    books: Book[];
-    loading: boolean;
-    hasMore: boolean;
-    onLoadMore: () => void;
-    pageSize?: number;
     emptyText?: string;
 }
 
-const NovelList: React.FC<NovelListProps> = ({
-    books,
-    loading,
-    hasMore,
-    onLoadMore,
-    emptyText = "暂无小说",
-}) => {
+const NovelList: React.FC<NovelListProps> = ({ emptyText = "暂无小说" }) => {
+    const dispatch = useAppDispatch();
+    const { books, loading, hasMore, searchParams, error } = useSelector(
+        (state: RootState) => state.books
+    );
+
     const observerRef = useRef<IntersectionObserver | null>(null);
     const loadMoreRef = useRef<HTMLDivElement>(null);
-    console.log("NovelistRendered");
+
+    // 加载更多数据
+    const loadMoreData = useCallback(() => {
+        if (loading || !hasMore) return;
+
+        const nextPage = searchParams.curr + 1;
+        const newParams = {
+            ...searchParams,
+            curr: nextPage,
+        };
+
+        dispatch(setSearchParams(newParams));
+        dispatch(searchBooks(newParams));
+    }, [loading, hasMore, searchParams, dispatch]);
+
     // 处理无限滚动加载
     const handleObserver = useCallback(
         (entries: IntersectionObserverEntry[]) => {
             const [entry] = entries;
             if (entry.isIntersecting && hasMore && !loading) {
-                onLoadMore();
+                loadMoreData();
             }
         },
-        [hasMore, loading, onLoadMore]
+        [hasMore, loading, loadMoreData]
     );
 
     // 设置 Intersection Observer
     useEffect(() => {
-        if (books.length === 0) return;
+        if (books.length === 0 || error) return;
         const observer = new IntersectionObserver(handleObserver, {
             root: null,
             rootMargin: "0px",

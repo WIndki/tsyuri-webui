@@ -75,7 +75,6 @@ export class BookSearchService {
             );
             return response.data;
         } catch (error) {
-            console.error("搜索书籍失败:", error);
             throw error;
         }
     }

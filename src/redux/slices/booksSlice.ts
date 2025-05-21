@@ -5,6 +5,7 @@ import {
     getBookSearchServiceInstance,
 } from "@/services/SearchRequest";
 
+// 初始状态
 interface BooksState {
     books: Book[];
     loading: boolean;
@@ -20,10 +21,14 @@ const initialState: BooksState = {
     searchParams: {
         curr: 1,
         limit: 20,
+        sort: "last_index_update_time",
+        keyword: "",
+        // ...其他搜索参数
     },
     error: null,
 };
 
+// 异步Thunk
 export const searchBooks = createAsyncThunk(
     "books/searchBooks",
     async (params: BookSearchParams, { rejectWithValue }) => {
@@ -32,21 +37,15 @@ export const searchBooks = createAsyncThunk(
             const response = await BookSearchServiceInstance.searchBooks(
                 params
             );
-
-            if (response.code === "200") {
-                console.log("搜索书籍成功:", response.data);
-                return {
-                    list: response.data.list,
-                    total: response.data.total,
-                    params,
-                };
-            } else {
-                return rejectWithValue(response.msg || "获取数据失败");
-            }
+            return response;
         } catch (error) {
-            return rejectWithValue(
-                (error as Error).message || "搜索书籍失败，请稍后再试"
-            );
+            // 使用 rejectWithValue 返回错误信息
+            // 如果 error 是一个 Error 对象，返回其 message
+            if (error instanceof Error) {
+                return rejectWithValue(error.message);
+            }
+            // 否则，返回一个通用错误消息
+            return rejectWithValue("发生未知错误");
         }
     }
 );
@@ -55,53 +54,58 @@ export const booksSlice = createSlice({
     name: "books",
     initialState,
     reducers: {
+        resetBooks: (state) => {
+            state.books = [];
+            state.hasMore = true;
+            state.error = null;
+        },
         setSearchParams: (
             state,
             action: PayloadAction<Partial<BookSearchParams>>
         ) => {
             state.searchParams = { ...state.searchParams, ...action.payload };
         },
-        resetBooks: (state) => {
-            state.books = [];
-            state.hasMore = true;
-            state.searchParams.curr = 1;
+        clearError: (state) => {
+            state.error = null;
         },
     },
     extraReducers: (builder) => {
         builder
             .addCase(searchBooks.pending, (state) => {
                 state.loading = true;
-                state.error = null;
+                state.error = null; // 清除之前的错误
             })
             .addCase(searchBooks.fulfilled, (state, action) => {
-                const { list, total, params } = action.payload;
-
+                const { list, total, pageNum, pageSize } = action.payload.data;
+                const params = parseInt(pageNum);
+                const totalSize = parseInt(pageSize);
                 // 如果是第一页，替换全部数据，否则追加
-                if (params.curr === 1) {
+                if (params === 1) {
                     state.books = list;
                 } else {
-                    // 避免重复数据
-                    const newBooks = list.filter(
-                        (newBook) =>
-                            !state.books.find((book) => book.id === newBook.id)
-                    );
-                    state.books = [...state.books, ...newBooks];
+                    state.books = [...state.books, ...list];
                 }
 
                 // 判断是否还有更多数据
-                const totalPages = Math.ceil(parseInt(total) / params.limit);
-                state.hasMore = params.curr < totalPages;
+                if (params * totalSize >= parseInt(total)) {
+                    state.hasMore = false; // 没有更多数据
+                } else {
+                    state.hasMore = true; // 还有更多数据
+                }
 
                 state.loading = false;
-                state.searchParams = params;
             })
             .addCase(searchBooks.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload as string;
+                // 从 action.payload 获取错误信息（通过 rejectWithValue 传递）
+                state.error =
+                    (action.payload as string) || "搜索失败，请稍后重试";
             });
     },
 });
 
-export const { setSearchParams, resetBooks } = booksSlice.actions;
+// 导出 Actions
+export const { resetBooks, setSearchParams, clearError } = booksSlice.actions;
 
+// 导出 Reducer
 export default booksSlice.reducer;
