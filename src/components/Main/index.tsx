@@ -1,5 +1,5 @@
 "use client";
-import { Layout, notification } from "antd";
+import { notification } from "antd";
 import React, { createContext, useEffect } from "react";
 import { useSelector } from "react-redux";
 import SearchForm from "../SearchForm";
@@ -8,6 +8,7 @@ import { RootState } from "@/redux/store";
 import { useAppDispatch } from "@/redux/hooks";
 import { searchBooks, clearError } from "@/redux/slices/booksSlice";
 import { NotificationInstance } from "antd/es/notification/interface";
+import Content from "../Content";
 
 // 创建一个通知上下文
 export const NotificationContext = createContext<{
@@ -47,20 +48,12 @@ const Main = () => {
     return (
         <NotificationContext.Provider value={{ api: notificationApi }}>
             {contextHolder}
-            <Layout.Content
-                style={{
-                    maxWidth: "50rem",
-                    width: "100%",
-                    padding: "24px",
-                    margin: "0 auto",
-                    height: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                }}
-            >
-                <SearchForm />
-            </Layout.Content>
-            <NovelList emptyText={loading ? "加载中..." : "没有找到相关小说"} />
+            <Content>
+                <NovelList
+                    emptyText={loading ? "加载中..." : "没有找到相关小说"}
+                />
+            </Content>
+            <SearchForm />
         </NotificationContext.Provider>
     );
 };

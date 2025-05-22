@@ -1,13 +1,12 @@
 "use client";
 import React, { memo } from "react";
-import { Card, Typography, Tag, Space, Tooltip, Row, Col, App } from "antd";
+import { Card, Typography, Tag, Space, Tooltip, Row, Col } from "antd";
 import {
     FileTextOutlined,
     ClockCircleOutlined,
     UserOutlined,
 } from "@ant-design/icons";
 import type { Book } from "../../types/book";
-import BookDetailModal from "../BookDetailModal";
 import "./novelCard.css";
 
 const { Text, Paragraph } = Typography;
@@ -15,11 +14,10 @@ const { Meta } = Card;
 
 interface BookCardProps {
     book: Book;
+    onCardClick?: (book: Book) => void;
 }
 
-const BookCard: React.FC<BookCardProps> = ({ book }) => {
-    const { modal } = App.useApp();
-
+const BookCard: React.FC<BookCardProps> = ({ book, onCardClick }) => {
     // 格式化字数显示
     const formatWordCount = (wordCount: string) => {
         const count = parseInt(wordCount);
@@ -79,29 +77,11 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
         );
     };
 
+    // 处理卡片点击
     const handleCardClick = () => {
-        modal.info({
-            title: "小说详情",
-            footer: null,
-            width: 700,
-            destroyOnClose: true,
-            centered: true,
-            maskClosable: true,
-            closable: true,
-            icon: null,
-            // 添加自定义样式类
-            // className: "book-detail-modal",
-            styles: {
-                mask: {
-                    backdropFilter: "blur(8px)",
-                    background: "rgba(0, 0, 0, 0.5)",
-                },
-                content: {
-                    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
-                },
-            },
-            content: <BookDetailModal book={book} />,
-        });
+        if (onCardClick) {
+            onCardClick(book);
+        }
     };
 
     return (

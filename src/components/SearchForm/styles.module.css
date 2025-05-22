@@ -7,6 +7,7 @@
     /* padding: 16px; */
     margin: 0 auto;
     max-width: 800px;
+    touch-action: none; /* 防止默认的触摸行为 */
 }
 
 .searchForm {

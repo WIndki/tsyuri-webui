@@ -1,11 +1,13 @@
 "use client";
 import React, { useEffect, useRef, useCallback, memo, useMemo } from "react";
-import { Row, Col, Spin, Empty } from "antd";
+import { Row, Col, Spin, Empty, App } from "antd";
 import BookCard from "../NovelCard";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useAppDispatch } from "@/redux/hooks";
 import { searchBooks, setSearchParams } from "@/redux/slices/booksSlice";
+import BookDetailModal from "../BookDetailModal";
+import { Book } from "@/types/book";
 
 interface NovelListProps {
     emptyText?: string;
@@ -13,12 +15,47 @@ interface NovelListProps {
 
 const NovelList: React.FC<NovelListProps> = ({ emptyText = "暂无小说" }) => {
     const dispatch = useAppDispatch();
+    const { modal } = App.useApp();
     const { books, loading, hasMore, searchParams, error } = useSelector(
         (state: RootState) => state.books
     );
-
     const observerRef = useRef<IntersectionObserver | null>(null);
     const loadMoreRef = useRef<HTMLDivElement>(null);
+    console.log("NovelList render");
+    // 展示小说详情Modal
+    const showBookDetailModal = useCallback(
+        (book: Book) => {
+            modal.info({
+                title: "小说详情",
+                footer: null,
+                width: 700,
+                destroyOnClose: true,
+                centered: true,
+                maskClosable: true,
+                closable: true,
+                icon: null,
+                styles: {
+                    mask: {
+                        backdropFilter: "blur(8px)",
+                        background: "rgba(0, 0, 0, 0.5)",
+                    },
+                    content: {
+                        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+                    },
+                },
+                content: <BookDetailModal book={book} />,
+            });
+        },
+        [modal]
+    );
+
+    // 处理BookCard点击事件
+    const handleBookCardClick = useCallback(
+        (book: Book) => {
+            showBookDetailModal(book);
+        },
+        [showBookDetailModal]
+    );
 
     // 加载更多数据
     const loadMoreData = useCallback(() => {
@@ -65,9 +102,12 @@ const NovelList: React.FC<NovelListProps> = ({ emptyText = "暂无小说" }) => 
 
     // 使用 useMemo 缓存书籍列表，避免不必要的重新渲染
     const bookList = useMemo(() => {
-        return books.map((book) => (
-            <Col key={book.id} span={8} xs={24} sm={12} md={8} lg={6}>
-                <BookCard book={book} />
+        return books.map((book, index) => (
+            <Col key={index} span={8} xs={24} sm={12} md={8} lg={6}>
+                <BookCard
+                    book={book}
+                    onCardClick={() => handleBookCardClick(book)}
+                />
             </Col>
         ));
     }, [books]);
@@ -77,12 +117,7 @@ const NovelList: React.FC<NovelListProps> = ({ emptyText = "暂无小说" }) => 
             {books.length === 0 && !loading ? (
                 <Empty description={emptyText} />
             ) : (
-                <Row
-                    justify="center"
-                    align="top"
-                    gutter={[16, 16]}
-                    style={{ margin: "0 auto", maxWidth: "100rem" }}
-                >
+                <Row justify="center" align="top" gutter={[16, 16]}>
                     {bookList}
                 </Row>
             )}

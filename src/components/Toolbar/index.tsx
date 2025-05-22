@@ -17,8 +17,9 @@ const Toolbar: React.FC = () => {
 
     return (
         <FloatButton.Group
-            trigger="hover"
-            style={{ right: 12, bottom: 155 }}
+            trigger="click"
+            shape="circle"
+            style={{ right: 12, bottom: 155, zIndex: 99 }}
             icon={<ArrowUpOutlined />}
         >
             <FloatButton.BackTop
@@ -27,7 +28,7 @@ const Toolbar: React.FC = () => {
                 style={{
                     transition: "opacity 0.3s ease-in-out",
                 }}
-            />{" "}
+            />
             <FloatButton
                 icon={mode === "dark" ? <BulbFilled /> : <BulbOutlined />}
                 tooltip={mode === "dark" ? "切换到亮色模式" : "切换到暗色模式"}

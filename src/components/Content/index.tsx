@@ -6,7 +6,7 @@ const Content = ({ children }: { children: React.ReactNode }) => {
     return (
         <Layout.Content
             style={{
-                maxWidth: "50rem",
+                // maxWidth: "50rem",
                 width: "100%",
                 padding: "24px",
                 margin: "0 auto",
