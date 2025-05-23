@@ -10,6 +10,9 @@ const DynamicToolbar = dynamic(() => import("@/components/Toolbar"), {
 });
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
+    if (process.env.NEXT_PUBLIC_DEBUG === "true") {
+        console.log("Layout render");
+    }
     return (
         <ThemeConfigProvider>
             <AntdLayout style={{ minHeight: "100vh", width: "100%" }}>

@@ -9,15 +9,16 @@ import {
     Row,
     Col,
     Typography,
-    Card,
     Form,
-    ConfigProvider,
 } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
 
 const SelectForm: React.FC = () => {
+    if (process.env.NEXT_PUBLIC_DEBUG === "true") {
+        console.log("SelectForm render");
+    }
     const formItemStyle = {
         marginBottom: 12,
     };
@@ -251,32 +252,26 @@ const SelectForm: React.FC = () => {
     ];
 
     return (
-        <ConfigProvider
-            theme={{
-                components: {
-                    Collapse: {},
-                    Card: {
-                        bodyPadding: 0,
-                    },
-                },
-            }}
-        >
-            <Card
+        <>
+            {/* <Card
                 style={{
-                    borderRadius: "8px",
+                    borderRadius: "12px",
                     boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
                 }}
-            >
-                <Collapse
-                    defaultActiveKey={["1"]}
-                    ghost
-                    expandIconPosition="end"
-                    style={{ backgroundColor: "transparent" }}
-                    items={collapseItems}
-                />
-            </Card>
-        </ConfigProvider>
+            > */}
+            <Collapse
+                // defaultActiveKey={["1"]}
+                // ghost
+                expandIconPosition="end"
+                style={{
+                    borderRadius: "4px",
+                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                }}
+                items={collapseItems}
+            />
+            {/* </Card> */}
+        </>
     );
 };
 
-export default SelectForm;
+export default React.memo(SelectForm);

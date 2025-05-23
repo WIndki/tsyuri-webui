@@ -1,0 +1,36 @@
+.bookDetailContainer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.bookCover {
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.bookInfo {
+    flex: 1;
+    min-width: 300px;
+}
+
+.actionButtons {
+    margin-top: 16px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.spinContainer {
+    width: 100%;
+    height: 100%;
+    display: flex;
+}
+
+.spinner {
+    margin: auto;
+    color: #1890ff;
+}

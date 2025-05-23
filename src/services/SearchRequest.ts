@@ -50,14 +50,15 @@ export class BookSearchService {
         try {
             // 构建查询字符串
             const queryParams = new URLSearchParams();
-            console.log("请求参数:", params);
-            // 添加所有非空参数
             Object.entries(params).forEach(([key, value]) => {
                 if (value !== undefined && value !== null && value !== "") {
                     queryParams.append(key, value.toString());
                 }
             });
-            console.log("请求参数:", queryParams.toString());
+            if (process.env.NEXT_PUBLIC_DEBUG === "true") {
+                console.log("searchBooks params:", params);
+                console.log("searchBooks queryParams:", queryParams.toString());
+            }
 
             // 发送请求
             const response = await axios.get<ApiResponse<BookSearchData>>(

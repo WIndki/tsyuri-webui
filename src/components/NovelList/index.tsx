@@ -1,19 +1,23 @@
 "use client";
 import React, { useEffect, useRef, useCallback, memo, useMemo } from "react";
-import { Row, Col, Spin, Empty, App } from "antd";
-import BookCard from "../NovelCard";
+import { Row, Col, Empty, App } from "antd";
+import BookCard from "@/components/NovelCard";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useAppDispatch } from "@/redux/hooks";
 import { searchBooks, setSearchParams } from "@/redux/slices/booksSlice";
-import BookDetailModal from "../BookDetailModal";
+import BookDetailModal from "@/components/BookDetailModal";
 import { Book } from "@/types/book";
+import LoadMoreIndicator from "./LoadMoreIndicator";
 
 interface NovelListProps {
     emptyText?: string;
 }
 
 const NovelList: React.FC<NovelListProps> = ({ emptyText = "暂无小说" }) => {
+    if (process.env.NEXT_PUBLIC_DEBUG === "true") {
+        console.log("NovelList render");
+    }
     const dispatch = useAppDispatch();
     const { modal } = App.useApp();
     const { books, loading, hasMore, searchParams, error } = useSelector(
@@ -21,7 +25,7 @@ const NovelList: React.FC<NovelListProps> = ({ emptyText = "暂无小说" }) => 
     );
     const observerRef = useRef<IntersectionObserver | null>(null);
     const loadMoreRef = useRef<HTMLDivElement>(null);
-    console.log("NovelList render");
+    // console.log("NovelList render");
     // 展示小说详情Modal
     const showBookDetailModal = useCallback(
         (book: Book) => {
@@ -34,6 +38,7 @@ const NovelList: React.FC<NovelListProps> = ({ emptyText = "暂无小说" }) => 
                 maskClosable: true,
                 closable: true,
                 icon: null,
+                open: true,
                 styles: {
                     mask: {
                         backdropFilter: "blur(8px)",
@@ -41,6 +46,12 @@ const NovelList: React.FC<NovelListProps> = ({ emptyText = "暂无小说" }) => 
                     },
                     content: {
                         boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+                        maxHeight: "80vh",
+                        overflowY: "auto",
+                        overscrollBehavior: "contain",
+                    },
+                    header: {
+                        color: "#d80000",
                     },
                 },
                 content: <BookDetailModal book={book} />,
@@ -122,20 +133,12 @@ const NovelList: React.FC<NovelListProps> = ({ emptyText = "暂无小说" }) => 
                 </Row>
             )}
 
-            <div
-                ref={loadMoreRef}
-                style={{
-                    textAlign: "center",
-                    marginTop: 16,
-                    marginBottom: 16,
-                    height: "160px",
-                }}
-            >
-                {loading && <Spin />}
-                {!hasMore && books.length > 0 && (
-                    <div style={{ color: "#999" }}>没有更多了</div>
-                )}
-            </div>
+            <LoadMoreIndicator
+                loading={loading}
+                hasMore={hasMore}
+                hasBooks={books.length > 0}
+                loadMoreRef={loadMoreRef as React.RefObject<HTMLDivElement>}
+            />
         </>
     );
 };

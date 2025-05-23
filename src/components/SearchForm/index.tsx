@@ -1,13 +1,13 @@
 "use client";
 import React from "react";
 import { Form, Flex } from "antd";
-import SearchInput from "@/components/SearchInput";
-import SelectForm from "@/components/SelectForm";
+import SearchInput from "@/components/SearchForm/SearchInput";
+import SelectForm from "@/components/SearchForm/SelectForm";
 import { BookSearchParams } from "@/services/SearchRequest";
 import type { FormValues } from "@/types/searchFormValue";
 import { useAppDispatch } from "@/redux/hooks";
-import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
+// import { useSelector } from "react-redux";
+// import { RootState } from "@/redux/store";
 import {
     resetBooks,
     searchBooks,
@@ -16,16 +16,20 @@ import {
 import styles from "./styles.module.css";
 
 const SearchForm: React.FC = () => {
+    if (process.env.NEXT_PUBLIC_DEBUG === "true") {
+        console.log("SearchForm render");
+    }
     const [form] = Form.useForm();
     const dispatch = useAppDispatch();
-    const { searchParams } = useSelector((state: RootState) => state.books);
+    // const { searchParams } = useSelector((state: RootState) => state.books);
 
     const handleSearch = (values: Partial<BookSearchParams>) => {
         dispatch(resetBooks()); // 重置书籍列表
         const newParams = {
-            ...searchParams,
+            // ...searchParams,
             ...values,
-            curr: 1, // 重置到第一页
+            curr: 1, // 重置当前页码
+            limit: 20, // 每页显示20本书
         };
         dispatch(setSearchParams(newParams));
         // 修复：使用dispatch执行搜索
@@ -86,4 +90,4 @@ const SearchForm: React.FC = () => {
     );
 };
 
-export default SearchForm;
+export default React.memo(SearchForm);

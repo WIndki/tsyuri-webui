@@ -19,6 +19,9 @@ export const NotificationContext = createContext<{
 export const ModalContext = createContext<unknown>(null);
 
 const Main = () => {
+    if (process.env.NEXT_PUBLIC_DEBUG === "true") {
+        console.log("Main render");
+    }
     const dispatch = useAppDispatch();
     const [notificationApi, contextHolder] = notification.useNotification();
     const { loading, searchParams, error } = useSelector(

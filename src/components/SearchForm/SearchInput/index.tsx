@@ -8,6 +8,9 @@ interface SearchInputProps {
 }
 
 const SearchInput: React.FC<SearchInputProps> = ({ onSubmit }) => {
+    if (process.env.NEXT_PUBLIC_DEBUG === "true") {
+        console.log("SearchInput render");
+    }
     return (
         <Form.Item name="keyword" noStyle>
             <Input.Search
@@ -27,7 +30,6 @@ const SearchInput: React.FC<SearchInputProps> = ({ onSubmit }) => {
                 style={{
                     width: "100%",
                     boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
-                    borderRadius: "8px",
                 }}
                 onSearch={() => {
                     // 取消输入框的焦点
@@ -44,4 +46,4 @@ const SearchInput: React.FC<SearchInputProps> = ({ onSubmit }) => {
     );
 };
 
-export default SearchInput;
+export default React.memo(SearchInput);

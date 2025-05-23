@@ -12,11 +12,15 @@
 
 .searchForm {
     padding: 16px;
-    border-radius: 12px;
+    border-radius: 8px;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
     background: var(--ant-layout-body-bg);
     border: 1px solid rgba(255, 255, 255, 0.2);
     transition: all 0.3s ease;
+    -webkit-border-radius: 8px;
+    -moz-border-radius: 8px;
+    -ms-border-radius: 8px;
+    -o-border-radius: 8px;
 }
 
 /* 针对不同设备的响应式调整 */
