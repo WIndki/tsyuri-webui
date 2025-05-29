@@ -2,6 +2,11 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export type ThemeMode = "light" | "dark";
 
+/**
+ * ThemeState 接口定义了主题状态的数据结构
+ * @interface ThemeState
+ * @property {ThemeMode} mode - 当前主题模式，可以是"light"或"dark"
+ */
 interface ThemeState {
     mode: ThemeMode;
 }

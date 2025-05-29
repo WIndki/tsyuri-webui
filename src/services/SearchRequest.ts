@@ -1,7 +1,21 @@
 import axios from "axios";
 import { Book } from "../types/book";
 
-// 搜索请求参数接口
+/**
+ * 搜索请求参数接口，定义了书籍搜索时需要的各种参数
+ * @interface BookSearchParams
+ * @property {number} curr - 当前页码
+ * @property {number} limit - 每页限制数量
+ * @property {string} [bookStatus] - 书籍状态，可选
+ * @property {string} [wordCountMin] - 最小字数，可选
+ * @property {string} [wordCountMax] - 最大字数，可选
+ * @property {string} [sort] - 排序方式，可选
+ * @property {string} [updatePeriod] - 更新周期，可选
+ * @property {string} [purity] - 纯度分类，可选
+ * @property {string} [keyword] - 关键词，可选
+ * @property {string} [tag] - 标签，可选
+ * @property {string} [source] - 来源，可选
+ */
 export interface BookSearchParams {
     curr: number; // 当前页码
     limit: number; // 每页限制
@@ -16,7 +30,14 @@ export interface BookSearchParams {
     source?: string; // 来源
 }
 
-// 搜索结果数据接口
+/**
+ * 搜索结果数据接口，定义了从API返回的书籍搜索结果结构
+ * @interface BookSearchData
+ * @property {string} pageNum - 当前页码
+ * @property {string} pageSize - 每页大小
+ * @property {string} total - 总记录数
+ * @property {Book[]} list - 书籍列表
+ */
 export interface BookSearchData {
     pageNum: string;
     pageSize: string;
@@ -24,7 +45,14 @@ export interface BookSearchData {
     list: Book[]; // 使用导入的Book类型
 }
 
-// API响应接口
+/**
+ * API响应接口，定义了API返回的通用数据结构
+ * @interface ApiResponse
+ * @template T - 响应数据的类型
+ * @property {string} code - 响应状态码
+ * @property {string} msg - 响应消息
+ * @property {T} data - 响应数据
+ */
 export interface ApiResponse<T> {
     code: string;
     msg: string;

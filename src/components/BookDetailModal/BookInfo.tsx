@@ -5,6 +5,11 @@ import styles from "./styles.module.css";
 
 const { Title } = Typography;
 
+/**
+ * BookInfoProps 接口定义了书籍信息组件所需的属性
+ * @interface BookInfoProps
+ * @property {Book} book - 需要显示信息的书籍对象
+ */
 interface BookInfoProps {
     book: Book;
 }

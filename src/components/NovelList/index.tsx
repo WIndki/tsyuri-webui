@@ -9,11 +9,25 @@ import { searchBooks, setSearchParams } from "@/redux/slices/booksSlice";
 import BookDetailModal from "@/components/BookDetailModal";
 import { Book } from "@/types/book";
 import LoadMoreIndicator from "./LoadMoreIndicator";
-
+/**
+ * NovelListProps 接口定义了 NovelList 组件所需的属性
+ * @interface NovelListProps
+ * @property {string} [emptyText] - 当没有小说时显示的文本，默认为 "暂无小说"
+ */
 interface NovelListProps {
     emptyText?: string;
 }
-
+/**
+ * 小说列表组件
+ * 用于展示小说列表，支持无限滚动加载和小说详情查看
+ * @param {NovelListProps} props - 小说列表组件属性
+ * @returns {JSX.Element} 小说列表组件
+ * @description
+ * 该组件使用了 Redux 来管理状态，使用了 Intersection Observer 来实现无限滚动加载。
+ * 当用户滚动到页面底部时，会自动加载更多小说数据。
+ * 组件还提供了一个 Modal 来展示小说详情，用户可以点击小说卡片查看详细信息。
+ * @example
+ */
 const NovelList: React.FC<NovelListProps> = ({ emptyText = "暂无小说" }) => {
     if (process.env.NEXT_PUBLIC_DEBUG === "true") {
         console.log("NovelList render");
@@ -33,7 +47,8 @@ const NovelList: React.FC<NovelListProps> = ({ emptyText = "暂无小说" }) => 
                 title: "小说详情",
                 footer: null,
                 width: 700,
-                destroyOnClose: true,
+                // destroyOnClose: true,
+                // destroyOnHidden: true,
                 centered: true,
                 maskClosable: true,
                 closable: true,

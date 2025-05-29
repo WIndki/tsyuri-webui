@@ -1,6 +1,12 @@
 import React from "react";
 import { Space, Tag } from "antd";
 
+/**
+ * BookTagsProps 接口定义了书籍标签组件所需的属性
+ * @interface BookTagsProps
+ * @property {string} tag - 书籍的标签字符串，多个标签用逗号分隔
+ * @property {string} [purity] - 书籍的纯度分类，可选
+ */
 interface BookTagsProps {
     tag: string;
     purity?: string;

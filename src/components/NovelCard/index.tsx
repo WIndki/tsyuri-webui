@@ -12,6 +12,12 @@ import NovelCover from "./NovelCover";
 import NovelMeta from "./NovelMeta";
 import { formatWordCount, formatUpdateTime } from "./utils";
 
+/**
+ * NovelCardProps 接口定义了 NovelCard 组件所需的属性
+ * @interface NovelCardProps
+ * @property {Book} book - 书籍对象，包含书名、封面、字数、更新时间和作者等信息
+ * @property {function} [onCardClick] - 可选的点击事件处理函数
+ */
 interface NovelCardProps {
     book: Book;
     onCardClick?: (book: Book) => void;

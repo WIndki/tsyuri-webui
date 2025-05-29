@@ -5,7 +5,15 @@ import {
     getBookSearchServiceInstance,
 } from "@/services/SearchRequest";
 
-// 初始状态
+/**
+ * BooksState 接口定义了书籍状态的数据结构
+ * @interface BooksState
+ * @property {Book[]} books - 书籍列表
+ * @property {boolean} loading - 加载状态
+ * @property {boolean} hasMore - 是否还有更多数据
+ * @property {BookSearchParams} searchParams - 搜索参数
+ * @property {string | null} error - 错误信息
+ */
 interface BooksState {
     books: Book[];
     loading: boolean;

@@ -3,6 +3,11 @@ import { Input, Button, Form } from "antd";
 import React from "react";
 import { SearchOutlined } from "@ant-design/icons";
 
+/**
+ * SearchInputProps 接口定义了搜索输入框组件所需的属性
+ * @interface SearchInputProps
+ * @property {() => void} [onSubmit] - 可选的提交回调函数，在搜索按钮点击时触发
+ */
 interface SearchInputProps {
     onSubmit?: () => void;
 }

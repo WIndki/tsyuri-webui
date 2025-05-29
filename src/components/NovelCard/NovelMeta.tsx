@@ -5,6 +5,11 @@ import type { Book } from "../../types/book";
 const { Text, Paragraph } = Typography;
 const { Meta } = Card;
 
+/**
+ * NovelMetaProps 接口定义了 NovelMeta 组件所需的属性
+ * @interface NovelMetaProps
+ * @property {Book} book - 书籍对象，包含书名、来源、状态、标签和简介等信息
+ */
 interface NovelMetaProps {
     book: Book;
 }
@@ -71,4 +76,4 @@ const NovelMeta: React.FC<NovelMetaProps> = ({ book }) => {
     );
 };
 
-export default NovelMeta;
+export default React.memo(NovelMeta);

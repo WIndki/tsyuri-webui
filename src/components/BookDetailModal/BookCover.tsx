@@ -2,6 +2,12 @@ import React from "react";
 import { Image, Spin } from "antd";
 import styles from "./styles.module.css";
 
+/**
+ * BookCoverProps 接口定义了书籍封面组件所需的属性
+ * @interface BookCoverProps
+ * @property {string} picUrl - 书籍封面图片URL
+ * @property {string} bookName - 书籍名称，用作图片的alt属性
+ */
 interface BookCoverProps {
     picUrl: string;
     bookName: string;

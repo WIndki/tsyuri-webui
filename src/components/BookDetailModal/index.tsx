@@ -8,6 +8,11 @@ import styles from "./styles.module.css";
 
 const { Paragraph } = Typography;
 
+/**
+ * BookDetailModalProps 接口定义了书籍详情模态框组件所需的属性
+ * @interface BookDetailModalProps
+ * @property {Book} book - 需要显示详情的书籍对象
+ */
 interface BookDetailModalProps {
     book: Book;
 }
