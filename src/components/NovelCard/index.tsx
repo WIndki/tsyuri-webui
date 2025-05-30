@@ -64,7 +64,14 @@ const NovelCard: React.FC<NovelCardProps> = ({ book, onCardClick }) => {
                 <Tooltip key="author" title={"作者：" + book.authorName}>
                     <Space>
                         <UserOutlined />
-                        <span>{book.authorName}</span>
+                        <span
+                            style={{
+                                wordBreak: "break-all",
+                                wordWrap: "break-word",
+                            }}
+                        >
+                            {book.authorName}
+                        </span>
                     </Space>
                 </Tooltip>,
             ]}
