@@ -134,6 +134,71 @@ export class BookSearchService {
 
         return params.map((item) => encodeURIComponent(item)).join(",");
     }
+
+    /**
+     * 将搜索参数对象转换为 URL 查询字符串
+     * @param params 部分搜索参数对象
+     * @returns URL 查询字符串 (例如 "keyword=test&curr=1")
+     */
+    static paramsToQueryString(params: Partial<BookSearchParams>): string {
+        const queryParams = new URLSearchParams();
+        for (const key in params) {
+            if (Object.prototype.hasOwnProperty.call(params, key)) {
+                const value = params[key as keyof BookSearchParams];
+                // 只添加非 undefined、非 null 且非空字符串的参数
+                if (
+                    value !== undefined &&
+                    value !== null &&
+                    String(value).trim() !== ""
+                ) {
+                    queryParams.append(key, String(value));
+                }
+            }
+        }
+        return queryParams.toString();
+    }
+
+    /**
+     * 将 URL 查询字符串解析为部分搜索参数对象
+     * @param queryString URL 查询字符串 (例如 "?keyword=test&curr=1" 或 "keyword=test&curr=1")
+     * @returns 部分搜索参数对象
+     */
+    static queryStringToParams(queryString: string): Partial<BookSearchParams> {
+        const urlParams = new URLSearchParams(queryString);
+        const parsedParams: Partial<BookSearchParams> = {};
+
+        const assignParam = (
+            key: keyof BookSearchParams,
+            valueStr: string | null
+        ) => {
+            if (valueStr === null || valueStr === undefined) return;
+
+            if (key === "curr" || key === "limit") {
+                const numValue = parseInt(valueStr, 10);
+                if (!isNaN(numValue)) {
+                    parsedParams[key] = numValue;
+                }
+            } else {
+                // 其他参数类型为字符串
+                parsedParams[key] = valueStr;
+            }
+        };
+
+        // 显式处理 BookSearchParams 中定义的每个键
+        assignParam("curr", urlParams.get("curr"));
+        assignParam("limit", urlParams.get("limit"));
+        assignParam("bookStatus", urlParams.get("bookStatus"));
+        assignParam("wordCountMin", urlParams.get("wordCountMin"));
+        assignParam("wordCountMax", urlParams.get("wordCountMax"));
+        assignParam("sort", urlParams.get("sort"));
+        assignParam("updatePeriod", urlParams.get("updatePeriod"));
+        assignParam("purity", urlParams.get("purity"));
+        assignParam("keyword", urlParams.get("keyword"));
+        assignParam("tag", urlParams.get("tag"));
+        assignParam("source", urlParams.get("source"));
+
+        return parsedParams;
+    }
 }
 
 //单例

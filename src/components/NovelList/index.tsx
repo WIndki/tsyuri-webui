@@ -95,6 +95,7 @@ const NovelList: React.FC<NovelListProps> = ({ emptyText = "暂无小说" }) => 
 
         dispatch(setSearchParams(newParams));
         dispatch(searchBooks(newParams));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [loading, hasMore, searchParams, dispatch]);
 
     // 使用 useMemo 缓存书籍列表，避免不必要的重新渲染

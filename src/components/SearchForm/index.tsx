@@ -12,8 +12,10 @@ import {
     resetBooks,
     searchBooks,
     setSearchParams,
+    setUrlParams,
 } from "@/redux/slices/booksSlice";
 import styles from "./styles.module.css";
+import Debounce from "@/utils/Debounce";
 
 const SearchForm: React.FC = () => {
     if (process.env.NEXT_PUBLIC_DEBUG === "true") {
@@ -21,7 +23,6 @@ const SearchForm: React.FC = () => {
     }
     const [form] = Form.useForm();
     const dispatch = useAppDispatch();
-    // const { searchParams } = useSelector((state: RootState) => state.books);
 
     const handleSearch = (values: Partial<BookSearchParams>) => {
         dispatch(resetBooks()); // 重置书籍列表
@@ -31,9 +32,9 @@ const SearchForm: React.FC = () => {
             curr: 1, // 重置当前页码
             limit: 20, // 每页显示20本书
         };
-        dispatch(setSearchParams(newParams));
-        // 修复：使用dispatch执行搜索
-        dispatch(searchBooks(newParams));
+        dispatch(setSearchParams(newParams)); // 设置新的搜索参数
+        dispatch(setUrlParams()); // 更新 URL 参数
+        dispatch(searchBooks(newParams)); // 执行搜索操作
     };
     // 将表单值转换为搜索参数
     const convertToSearchParams = (
@@ -63,11 +64,13 @@ const SearchForm: React.FC = () => {
         handleSearch(searchParams);
     };
 
+    const debounceHandleSubmit = Debounce(handleSubmit, 1000, true);
+
     return (
         <div className={styles.searchFormContainer}>
             <Form
                 form={form}
-                onFinish={handleSubmit}
+                onFinish={debounceHandleSubmit}
                 className={styles.searchForm}
                 // initialValues={{
                 //     keyword: "",

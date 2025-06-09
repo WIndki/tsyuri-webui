@@ -3,6 +3,7 @@ import { Book } from "@/types/book";
 import {
     BookSearchParams,
     getBookSearchServiceInstance,
+    BookSearchService, // 导入 BookSearchService
 } from "@/services/SearchRequest";
 
 /**
@@ -66,12 +67,59 @@ export const booksSlice = createSlice({
             state.books = [];
             state.hasMore = true;
             state.error = null;
+            state.searchParams = {
+                curr: 1,
+                limit: 20,
+                sort: "last_index_update_time",
+                keyword: "",
+                // ...其他搜索参数
+            };
         },
         setSearchParams: (
             state,
             action: PayloadAction<Partial<BookSearchParams>>
         ) => {
             state.searchParams = { ...state.searchParams, ...action.payload };
+        },
+        setUrlParams: (state) => {
+            // 确保 curr 和 limit 是数字类型
+            if (
+                state.searchParams.curr &&
+                typeof state.searchParams.curr === "string"
+            ) {
+                state.searchParams.curr = parseInt(state.searchParams.curr, 10);
+            }
+            if (
+                state.searchParams.limit &&
+                typeof state.searchParams.limit === "string"
+            ) {
+                state.searchParams.limit = parseInt(
+                    state.searchParams.limit,
+                    10
+                );
+            }
+            // 确保 curr 和 limit 有默认值，如果它们变为 NaN 或 undefined
+            if (
+                isNaN(state.searchParams.curr) ||
+                state.searchParams.curr === undefined
+            ) {
+                state.searchParams.curr = initialState.searchParams.curr;
+            }
+            if (
+                isNaN(state.searchParams.limit) ||
+                state.searchParams.limit === undefined
+            ) {
+                state.searchParams.limit = initialState.searchParams.limit;
+            }
+
+            if (typeof window !== "undefined") {
+                const queryString = BookSearchService.paramsToQueryString(
+                    state.searchParams
+                );
+                const newPath =
+                    "/search" + (queryString ? `?${queryString}` : "");
+                window.history.pushState(null, "", newPath);
+            }
         },
         clearError: (state) => {
             state.error = null;
@@ -113,7 +161,8 @@ export const booksSlice = createSlice({
 });
 
 // 导出 Actions
-export const { resetBooks, setSearchParams, clearError } = booksSlice.actions;
+export const { resetBooks, setSearchParams, clearError, setUrlParams } =
+    booksSlice.actions;
 
 // 导出 Reducer
 export default booksSlice.reducer;

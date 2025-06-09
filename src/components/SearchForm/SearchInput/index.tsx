@@ -2,6 +2,7 @@
 import { Input, Button, Form } from "antd";
 import React from "react";
 import { SearchOutlined } from "@ant-design/icons";
+import { useAppSelector } from "@/redux/hooks";
 
 /**
  * SearchInputProps 接口定义了搜索输入框组件所需的属性
@@ -16,15 +17,18 @@ const SearchInput: React.FC<SearchInputProps> = ({ onSubmit }) => {
     if (process.env.NEXT_PUBLIC_DEBUG === "true") {
         console.log("SearchInput render");
     }
+    const { loading } = useAppSelector((state) => state.books);
     return (
         <Form.Item name="keyword" noStyle>
             <Input.Search
                 placeholder="请输入搜索关键词..."
                 allowClear
+                disabled={loading}
                 enterButton={
                     <Button
                         type="primary"
                         size="large"
+                        loading={loading}
                         icon={<SearchOutlined />}
                         htmlType="submit"
                     >

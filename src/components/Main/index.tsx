@@ -6,9 +6,17 @@ import SearchForm from "../SearchForm";
 import NovelList from "../NovelList";
 import { RootState } from "@/redux/store";
 import { useAppDispatch } from "@/redux/hooks";
-import { searchBooks, clearError } from "@/redux/slices/booksSlice";
+import { useSearchParams as getUrlParams } from "next/navigation";
+import {
+    searchBooks,
+    clearError,
+    setSearchParams,
+    resetBooks,
+} from "@/redux/slices/booksSlice"; // 导入 setSearchParams
 import { NotificationInstance } from "antd/es/notification/interface";
 import Content from "../Content";
+import { BookSearchParams, BookSearchService } from "@/services/SearchRequest"; // 导入 BookSearchService
+import ForwardEventListener from "@/utils/ForwardEventListener";
 
 // 创建一个通知上下文
 export const NotificationContext = createContext<{
@@ -27,11 +35,30 @@ const Main = () => {
     const { loading, searchParams, error } = useSelector(
         (state: RootState) => state.books
     );
+    const urlParams = getUrlParams();
+    const forwardEventListener = ForwardEventListener();
 
-    // 初始加载
+    // 初始加载：解析URL参数并搜索
     useEffect(() => {
-        dispatch(searchBooks(searchParams));
-    }, []); // 只在组件挂载时执行一次
+        let newParams: BookSearchParams = { ...searchParams };
+        if (urlParams !== null) {
+            const queryString = urlParams.toString(); // 获取当前URL的查询字符串
+            if (queryString) {
+                dispatch(resetBooks()); // 重置书籍列表
+                // 如果有查询字符串，解析它并更新 Redux 状态
+                const paramsFromUrl =
+                    BookSearchService.queryStringToParams(queryString);
+                newParams = {
+                    ...paramsFromUrl,
+                    curr: 1, // 重置当前页码
+                    limit: 20, // 每页显示20本书
+                };
+            }
+        }
+        dispatch(setSearchParams(newParams)); // 更新 Redux 状态和 URL
+        dispatch(searchBooks(newParams));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [forwardEventListener]);
 
     // 显示错误消息
     useEffect(() => {
