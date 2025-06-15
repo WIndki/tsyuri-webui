@@ -22,9 +22,6 @@ export async function middleware(request: NextRequest) {
         // 重写请求到目标 URL
         const response = NextResponse.rewrite(targetUrl);
 
-        // 设置与原 API 路由中相同的缓存控制头部
-        response.headers.set("Cache-Control", "no-store, max-age=0");
-
         return response;
     } else if (pathname === "/api/book/searchByPage") {
         // 只允许GET请求
