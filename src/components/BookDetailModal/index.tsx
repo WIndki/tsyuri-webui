@@ -35,5 +35,7 @@ const BookDetailModal: React.FC<BookDetailModalProps> = ({ book }) => {
         </>
     );
 };
+BookDetailModal.displayName = "BookDetailModal";
+// BookDetailModal 组件用于展示书籍的详细信息，包括封面、书名、作者、字数、更新时间等
 
 export default BookDetailModal;

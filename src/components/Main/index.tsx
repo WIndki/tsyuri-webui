@@ -1,38 +1,28 @@
 "use client";
-import { notification } from "antd";
-import React, { createContext, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { App } from "antd";
+import React, { useEffect } from "react";
 import SearchForm from "../SearchForm";
 import NovelList from "../NovelList";
 import { RootState } from "@/redux/store";
-import { useAppDispatch } from "@/redux/hooks";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { useSearchParams as getUrlParams } from "next/navigation";
 import {
-    searchBooks,
     clearError,
-    setSearchParams,
     resetBooks,
+    searchBooks,
+    setSearchParams,
 } from "@/redux/slices/booksSlice"; // 导入 setSearchParams
-import { NotificationInstance } from "antd/es/notification/interface";
 import Content from "../Content";
 import { BookSearchParams, BookSearchService } from "@/services/SearchRequest"; // 导入 BookSearchService
 import ForwardEventListener from "@/utils/ForwardEventListener";
-
-// 创建一个通知上下文
-export const NotificationContext = createContext<{
-    api: NotificationInstance | null;
-}>({ api: null });
-
-// 替换原有的 ModalContext
-export const ModalContext = createContext<unknown>(null);
 
 const Main = () => {
     if (process.env.NEXT_PUBLIC_DEBUG === "true") {
         console.log("Main render");
     }
+    const { notification } = App.useApp();
     const dispatch = useAppDispatch();
-    const [notificationApi, contextHolder] = notification.useNotification();
-    const { loading, searchParams, error } = useSelector(
+    const { loading, searchParams, error } = useAppSelector(
         (state: RootState) => state.books
     );
     const urlParams = getUrlParams();
@@ -63,8 +53,7 @@ const Main = () => {
     // 显示错误消息
     useEffect(() => {
         if (error) {
-            // 使用 notification 而不是 message 来显示更详细的错误
-            notificationApi?.error({
+            notification?.error({
                 message: "错误",
                 description: error,
                 placement: "topRight",
@@ -73,19 +62,19 @@ const Main = () => {
                 onClose: () => dispatch(clearError()),
             });
         }
-    }, [error, notificationApi, dispatch]);
+    }, [error, dispatch, notification]);
 
     return (
-        <NotificationContext.Provider value={{ api: notificationApi }}>
-            {contextHolder}
+        <>
             <Content>
                 <NovelList
                     emptyText={loading ? "加载中..." : "没有找到相关小说"}
                 />
             </Content>
             <SearchForm />
-        </NotificationContext.Provider>
+        </>
     );
 };
+Main.displayName = "Main"; // 设置组件名称，便于调试
 
 export default Main;

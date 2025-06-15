@@ -1,10 +1,9 @@
 "use client";
 import React, { useCallback, memo, useMemo } from "react";
-import { Row, Col, Empty, App, Spin } from "antd";
+import { Row, Empty, App, Spin } from "antd";
 import BookCard from "@/components/NovelCard";
-import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { useAppDispatch } from "@/redux/hooks";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { searchBooks, setSearchParams } from "@/redux/slices/booksSlice";
 import BookDetailModal from "@/components/BookDetailModal";
 import { Book } from "@/types/book";
@@ -36,7 +35,7 @@ const NovelList: React.FC<NovelListProps> = ({ emptyText = "暂无小说" }) => 
     }
     const dispatch = useAppDispatch();
     const { modal } = App.useApp();
-    const { books, loading, hasMore, searchParams, error } = useSelector(
+    const { books, loading, hasMore, searchParams, error } = useAppSelector(
         (state: RootState) => state.books
     );
 
@@ -101,12 +100,12 @@ const NovelList: React.FC<NovelListProps> = ({ emptyText = "暂无小说" }) => 
     // 使用 useMemo 缓存书籍列表，避免不必要的重新渲染
     const bookList = useMemo(() => {
         return books.map((book, index) => (
-            <Col key={index} span={8} xs={24} sm={12} md={8} lg={6}>
-                <BookCard
-                    book={book}
-                    onCardClick={() => handleBookCardClick(book)}
-                />
-            </Col>
+            // 修改：直接使用 BookCard, Col is now inside BookCard
+            <BookCard
+                key={book.id || index} // 优先使用 book.id (如果存在)，否则回退到 index
+                book={book}
+                onCardClick={handleBookCardClick} // Pass the callback directly
+            />
         ));
     }, [books, handleBookCardClick]);
 
@@ -135,7 +134,11 @@ const NovelList: React.FC<NovelListProps> = ({ emptyText = "暂无小说" }) => 
                         justify="center"
                         align="top"
                         gutter={[16, 16]}
-                        style={{ margin: "0 auto" }}
+                        style={{
+                            margin: "0 auto",
+                            padding: "1rem 0.25rem",
+                            maxWidth: "100rem",
+                        }}
                     >
                         {bookList}
                     </Row>
@@ -144,5 +147,6 @@ const NovelList: React.FC<NovelListProps> = ({ emptyText = "暂无小说" }) => 
         </>
     );
 };
+NovelList.displayName = "NovelList";
 
 export default memo(NovelList);

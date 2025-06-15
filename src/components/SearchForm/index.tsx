@@ -36,6 +36,7 @@ const SearchForm: React.FC = () => {
         dispatch(setUrlParams()); // 更新 URL 参数
         dispatch(searchBooks(newParams)); // 执行搜索操作
     };
+
     // 将表单值转换为搜索参数
     const convertToSearchParams = (
         values: FormValues
@@ -59,12 +60,14 @@ const SearchForm: React.FC = () => {
         };
     };
 
-    const handleSubmit = (values: FormValues) => {
-        const searchParams = convertToSearchParams(values);
-        handleSearch(searchParams);
-    };
-
-    const debounceHandleSubmit = Debounce(handleSubmit, 1000, true);
+    const debounceHandleSubmit = Debounce(
+        (values: FormValues) => {
+            const searchParams = convertToSearchParams(values);
+            handleSearch(searchParams);
+        },
+        1000,
+        true
+    );
 
     return (
         <div className={styles.searchFormContainer}>
@@ -92,5 +95,6 @@ const SearchForm: React.FC = () => {
         </div>
     );
 };
+SearchForm.displayName = "SearchForm";
 
 export default React.memo(SearchForm);
