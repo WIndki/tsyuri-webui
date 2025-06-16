@@ -14,6 +14,8 @@ import {
 import Content from "../Content";
 import { BookSearchParams, BookSearchService } from "@/services/SearchRequest"; // 导入 BookSearchService
 import ForwardEventListener from "@/utils/ForwardEventListener";
+import SearchForm from "../SearchForm";
+import Toolbar from "../Toolbar";
 
 const Main = () => {
     if (process.env.NEXT_PUBLIC_DEBUG === "true") {
@@ -70,6 +72,8 @@ const Main = () => {
                     emptyText={loading ? "加载中..." : "没有找到相关小说"}
                 />
             </Content>
+            <SearchForm />
+            <Toolbar />
         </>
     );
 };
