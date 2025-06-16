@@ -1,4 +1,3 @@
-"use client";
 import { Spin } from "antd";
 import dynamic from "next/dynamic";
 
@@ -15,7 +14,7 @@ const LazyLoadMain = dynamic(() => import("./index"), {
             <Spin size="large" />
         </div>
     ),
-    ssr: false,
+    ssr: true,
 });
 
 export default LazyLoadMain;

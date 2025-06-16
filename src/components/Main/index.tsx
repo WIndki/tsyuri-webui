@@ -1,7 +1,6 @@
 "use client";
 import { App } from "antd";
 import React, { useEffect } from "react";
-import SearchForm from "../SearchForm";
 import NovelList from "../NovelList";
 import { RootState } from "@/redux/store";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
@@ -71,7 +70,6 @@ const Main = () => {
                     emptyText={loading ? "加载中..." : "没有找到相关小说"}
                 />
             </Content>
-            <SearchForm />
         </>
     );
 };
