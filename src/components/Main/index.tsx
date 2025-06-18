@@ -1,6 +1,6 @@
 "use client";
-import { App } from "antd";
-import React, { useEffect } from "react";
+import { App, Spin } from "antd";
+import React, { Suspense, useEffect } from "react";
 import NovelList from "../NovelList";
 import { RootState } from "@/redux/store";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
@@ -10,17 +10,15 @@ import {
     resetBooks,
     searchBooks,
     setSearchParams,
-} from "@/redux/slices/booksSlice"; // 导入 setSearchParams
+} from "@/redux/slices/booksSlice";
 import Content from "../Content";
-import { BookSearchParams, BookSearchService } from "@/services/SearchRequest"; // 导入 BookSearchService
+import { BookSearchParams, BookSearchService } from "@/services/SearchRequest";
 import ForwardEventListener from "@/utils/ForwardEventListener";
 import SearchForm from "../SearchForm";
 import Toolbar from "../Toolbar";
 
-const Main = () => {
-    if (process.env.NEXT_PUBLIC_DEBUG === "true") {
-        console.log("Main render");
-    }
+// 创建内部组件来使用 useSearchParams
+const MainContent = () => {
     const { notification } = App.useApp();
     const dispatch = useAppDispatch();
     const { loading, searchParams, error } = useAppSelector(
@@ -77,6 +75,26 @@ const Main = () => {
         </>
     );
 };
+
+// 主组件，用Suspense包裹内部组件
+const Main = () => {
+    if (process.env.NEXT_PUBLIC_DEBUG === "true") {
+        console.log("Main render");
+    }
+
+    return (
+        <Suspense
+            fallback={
+                <div style={{ margin: "0 auto" }}>
+                    <Spin size="large" />
+                </div>
+            }
+        >
+            <MainContent />
+        </Suspense>
+    );
+};
+
 Main.displayName = "Main"; // 设置组件名称，便于调试
 
 export default Main;
