@@ -1,36 +1,36 @@
 .searchFormContainer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 100 !important;
     /* padding: 16px; */
-    margin: 0 auto;
-    max-width: 800px;
-    touch-action: none; /* 防止默认的触摸行为 */
+    margin: 0 auto !important;
+    max-width: 800px !important;
+    touch-action: none !important; /* 防止默认的触摸行为 */
 }
 
 .searchForm {
-    padding: 16px;
-    border-radius: 8px;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-    background: var(--ant-layout-body-bg);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.3s ease;
-    -webkit-border-radius: 8px;
-    -moz-border-radius: 8px;
-    -ms-border-radius: 8px;
-    -o-border-radius: 8px;
+    padding: 16px !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
+    background: var(--ant-layout-body-bg) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    transition: all 0.3s ease !important;
+    -webkit-border-radius: 8px !important;
+    -moz-border-radius: 8px !important;
+    -ms-border-radius: 8px !important;
+    -o-border-radius: 8px !important;
 }
 
 /* 针对不同设备的响应式调整 */
 @media (max-width: 768px) {
     .searchFormContainer {
-        padding: 8px;
+        padding: 8px !important;
     }
 
     .searchForm {
-        padding: 12px;
-        border-radius: 8px;
+        padding: 12px !important;
+        border-radius: 8px !important;
     }
 }

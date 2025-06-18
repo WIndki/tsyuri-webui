@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import "./globals.css";
 import Layout from "@/components/Layout";
 import { ReduxProvider } from "@/redux/provider";
+import { AntdRegistry } from "@ant-design/nextjs-registry";
+
+import "./globals.css";
 
 export const metadata: Metadata = {
     title: "小说搜索",
@@ -15,10 +17,12 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
+        <html lang="zh-cn">
             <body>
                 <ReduxProvider>
-                    <Layout>{children}</Layout>
+                    <AntdRegistry>
+                        <Layout>{children}</Layout>
+                    </AntdRegistry>
                 </ReduxProvider>
             </body>
         </html>

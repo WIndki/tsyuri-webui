@@ -1,5 +1,5 @@
-import LazyLoadMain from "@/components/Main/lazyLoadMain";
+import Main from "@/components/Main";
 
 export default function Home() {
-    return <LazyLoadMain />; // 使用懒加载的 Main 组件
+    return <Main />; // 使用懒加载的 Main 组件
 }

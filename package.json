@@ -6,9 +6,11 @@
         "dev": "next dev --turbopack",
         "build": "next build",
         "start": "next start",
-        "lint": "next lint"
+        "lint": "next lint",
+        "predev": "ts-node --project ./tsconfig.node.json ./scripts/genAntdCss.tsx"
     },
     "dependencies": {
+        "@ant-design/cssinjs": "^1.23.0",
         "@ant-design/nextjs-registry": "^1.0.2",
         "@ant-design/v5-patch-for-react-19": "^1.0.3",
         "@reduxjs/toolkit": "^2.8.2",
@@ -21,12 +23,16 @@
         "react-redux": "^9.2.0"
     },
     "devDependencies": {
+        "@ant-design/static-style-extract": "^1.0.3",
         "@eslint/eslintrc": "^3",
         "@types/node": "^20",
         "@types/react": "^19",
         "@types/react-dom": "^19",
+        "cross-env": "^7.0.3",
         "eslint": "^9",
         "eslint-config-next": "15.3.2",
+        "ts-node": "^10.9.2",
+        "tslib": "^2.8.1",
         "typescript": "^5"
     }
 }
