@@ -70,8 +70,6 @@ const MainContent = () => {
                     emptyText={loading ? "加载中..." : "没有找到相关小说"}
                 />
             </Content>
-            <SearchForm />
-            <Toolbar />
         </>
     );
 };
@@ -83,15 +81,19 @@ const Main = () => {
     }
 
     return (
-        <Suspense
-            fallback={
-                <div style={{ margin: "0 auto" }}>
-                    <Spin size="large" />
-                </div>
-            }
-        >
-            <MainContent />
-        </Suspense>
+        <>
+            <Suspense
+                fallback={
+                    <div style={{ margin: "0 auto" }}>
+                        <Spin size="large" />
+                    </div>
+                }
+            >
+                <MainContent />
+            </Suspense>
+            <SearchForm />
+            <Toolbar />
+        </>
     );
 };
 

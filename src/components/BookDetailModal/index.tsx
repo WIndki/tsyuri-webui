@@ -1,5 +1,5 @@
 import React from "react";
-import { Typography, Divider, Spin } from "antd";
+import { Typography, Divider, Skeleton } from "antd";
 import type { Book } from "@/types/book";
 import BookCover from "./BookCover";
 import BookInfo from "./BookInfo";
@@ -42,8 +42,9 @@ BookDetailModal.displayName = "BookDetailModal";
 export default dynamic(() => Promise.resolve(BookDetailModal), {
     ssr: true,
     loading: () => (
-        <div style={{ margin: "0 auto", width: "fit-content" }}>
-            <Spin />
-        </div>
+        // <div style={{ margin: "0 auto", width: "fit-content" }}>
+        //     <Spin />
+        // </div>
+        <Skeleton />
     ),
 });
