@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 import { Spin, Modal } from "antd";
-import styles from "../../styles.module.css";
 
 interface LoadingIndicatorProps {
     type?: "inline" | "overlay" | "center";

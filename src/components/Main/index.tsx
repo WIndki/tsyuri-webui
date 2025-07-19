@@ -1,5 +1,5 @@
 "use client";
-import { App, Spin } from "antd";
+import { Spin } from "antd";
 import React, { Suspense, useEffect } from "react";
 import NovelList from "../NovelList";
 import { RootState } from "@/redux/store";

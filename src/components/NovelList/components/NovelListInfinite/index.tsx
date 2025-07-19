@@ -4,7 +4,7 @@ import { Row, App } from "antd";
 import BookCard from "@/components/NovelCard";
 import { RootState } from "@/redux/store";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { searchBooks, setSearchParams, clearError } from "@/redux/slices/booksSlice";
+import { searchBooks, setSearchParams } from "@/redux/slices/booksSlice";
 import BookDetailModal from "@/components/BookDetailModal";
 import { Book } from "@/types/book";
 import InfiniteScroll from "react-infinite-scroll-component";

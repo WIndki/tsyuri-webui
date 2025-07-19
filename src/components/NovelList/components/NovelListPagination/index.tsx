@@ -4,7 +4,7 @@ import { Row, App, Pagination } from "antd";
 import BookCard from "@/components/NovelCard";
 import { RootState } from "@/redux/store";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { searchBooksWithPagination, setSearchParams, clearError } from "@/redux/slices/booksSlice";
+import { searchBooksWithPagination, setSearchParams } from "@/redux/slices/booksSlice";
 import BookDetailModal from "@/components/BookDetailModal";
 import { Book } from "@/types/book";
 import LoadingIndicator from "../LoadingIndicator";
