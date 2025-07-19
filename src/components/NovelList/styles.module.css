@@ -5,6 +5,27 @@
     height: 160px !important;
 }
 
+.loadingSpinWrapper {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 1000 !important;
+    background-color: transparent !important;
+}
+
 .noMoreText {
     color: #999 !important;
+}
+
+.paginationContainer {
+    /* text-align: center !important;
+    margin-top: 24px !important;
+    margin-bottom: 24px !important;
+    padding: 16px !important;
+    height: 160px !important; */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-bottom: 160px !important;
 }

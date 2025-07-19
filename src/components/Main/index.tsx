@@ -6,10 +6,11 @@ import { RootState } from "@/redux/store";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { useSearchParams as getUrlParams } from "next/navigation";
 import {
-    clearError,
     resetBooks,
     searchBooks,
+    searchBooksWithPagination,
     setSearchParams,
+    setDisplayModeReset,
 } from "@/redux/slices/booksSlice";
 import Content from "../Content";
 import { BookSearchParams, BookSearchService } from "@/services/SearchRequest";
@@ -19,11 +20,11 @@ import Toolbar from "../Toolbar";
 
 // 创建内部组件来使用 useSearchParams
 const MainContent = () => {
-    const { notification } = App.useApp();
     const dispatch = useAppDispatch();
-    const { loading, searchParams, error } = useAppSelector(
+    const { loading, searchParams } = useAppSelector(
         (state: RootState) => state.books
     );
+    const { displayMode } = useAppSelector((state: RootState) => state.theme);
     const urlParams = getUrlParams();
     const forwardEventListener = ForwardEventListener();
 
@@ -45,23 +46,43 @@ const MainContent = () => {
             }
         }
         dispatch(setSearchParams(newParams)); // 更新 Redux 状态和 URL
-        dispatch(searchBooks(newParams));
+        // 根据显示模式使用不同的搜索action
+        if (displayMode === "pagination") {
+            dispatch(searchBooksWithPagination(newParams));
+        } else {
+            dispatch(searchBooks(newParams));
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [forwardEventListener]);
 
-    // 显示错误消息
+    // 监听显示模式变化
     useEffect(() => {
-        if (error) {
-            notification?.error({
-                message: "错误",
-                description: error,
-                placement: "topRight",
-                duration: 5,
-                // 点击关闭按钮后清除错误状态
-                onClose: () => dispatch(clearError()),
-            });
+        // 当显示模式改变时，重置数据并重新搜索
+        dispatch(setDisplayModeReset());
+        const newParams = { ...searchParams, curr: 1 };
+        dispatch(setSearchParams(newParams));
+        // 根据显示模式使用不同的搜索action
+        if (displayMode === "pagination") {
+            dispatch(searchBooksWithPagination(newParams));
+        } else {
+            dispatch(searchBooks(newParams));
         }
-    }, [error, dispatch, notification]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [displayMode]);
+
+    // 显示错误消息 - 现在由各个子组件处理，这里移除
+    // useEffect(() => {
+    //     if (error) {
+    //         notification?.error({
+    //             message: "错误",
+    //             description: error,
+    //             placement: "topRight",
+    //             duration: 5,
+    //             // 点击关闭按钮后清除错误状态
+    //             onClose: () => dispatch(clearError()),
+    //         });
+    //     }
+    // }, [error, dispatch, notification]);
 
     return (
         <>

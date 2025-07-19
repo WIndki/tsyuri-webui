@@ -13,6 +13,8 @@ interface SearchInputProps {
     onSubmit?: () => void;
 }
 
+
+
 const SearchInput: React.FC<SearchInputProps> = ({ onSubmit }) => {
     if (process.env.NEXT_PUBLIC_DEBUG === "true") {
         console.log("SearchInput render");

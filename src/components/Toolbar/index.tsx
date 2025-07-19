@@ -5,19 +5,26 @@ import {
     BulbOutlined,
     BulbFilled,
     QuestionOutlined,
+    UnorderedListOutlined,
+    AppstoreOutlined,
 } from "@ant-design/icons";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { toggleTheme } from "@/redux/slices/themeSlice";
+import { toggleTheme, toggleDisplayMode } from "@/redux/slices/themeSlice";
 import About from "./About";
 
 const Toolbar: React.FC = () => {
     const dispatch = useAppDispatch();
-    const { mode } = useAppSelector((state) => state.theme);
+    const { mode, displayMode } = useAppSelector((state) => state.theme);
     const { modal } = App.useApp();
 
     // 切换主题
     const handleToggleTheme = () => {
         dispatch(toggleTheme());
+    };
+
+    // 切换显示模式
+    const handleToggleDisplayMode = () => {
+        dispatch(toggleDisplayMode());
     };
 
     const handleOpenAbout = () => {
@@ -45,6 +52,11 @@ const Toolbar: React.FC = () => {
                 style={{
                     transition: "opacity 0.3s ease-in-out",
                 }}
+            />
+            <FloatButton
+                icon={displayMode === "pagination" ? <UnorderedListOutlined /> : <AppstoreOutlined />}
+                tooltip={displayMode === "pagination" ? "切换到无限滚动模式" : "切换到分页模式"}
+                onClick={handleToggleDisplayMode}
             />
             <FloatButton
                 icon={mode === "dark" ? <BulbFilled /> : <BulbOutlined />}

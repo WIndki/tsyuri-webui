@@ -1,14 +1,17 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export type ThemeMode = "light" | "dark";
+export type DisplayMode = "infinite" | "pagination";
 
 /**
  * ThemeState 接口定义了主题状态的数据结构
  * @interface ThemeState
  * @property {ThemeMode} mode - 当前主题模式，可以是"light"或"dark"
+ * @property {DisplayMode} displayMode - 列表显示模式，可以是"infinite"或"pagination"
  */
 interface ThemeState {
     mode: ThemeMode;
+    displayMode: DisplayMode;
 }
 
 // 检查本地存储中是否有保存的主题设置
@@ -22,8 +25,24 @@ const getInitialTheme = (): ThemeMode => {
     return "light";
 };
 
+// 检查设备类型并获取初始显示模式
+const getInitialDisplayMode = (): DisplayMode => {
+    if (typeof window !== "undefined") {
+        const savedDisplayMode = localStorage.getItem("displayMode");
+        if (savedDisplayMode === "infinite" || savedDisplayMode === "pagination") {
+            return savedDisplayMode;
+        }
+        
+        // 检查是否为iOS设备
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        return isIOS ? "pagination" : "infinite";
+    }
+    return "infinite";
+};
+
 const initialState: ThemeState = {
     mode: getInitialTheme(),
+    displayMode: getInitialDisplayMode(),
 };
 
 export const themeSlice = createSlice({
@@ -42,9 +61,21 @@ export const themeSlice = createSlice({
                 localStorage.setItem("themeMode", state.mode);
             }
         },
+        toggleDisplayMode: (state) => {
+            state.displayMode = state.displayMode === "infinite" ? "pagination" : "infinite";
+            if (typeof window !== "undefined") {
+                localStorage.setItem("displayMode", state.displayMode);
+            }
+        },
+        setDisplayMode: (state, action: PayloadAction<DisplayMode>) => {
+            state.displayMode = action.payload;
+            if (typeof window !== "undefined") {
+                localStorage.setItem("displayMode", state.displayMode);
+            }
+        },
     },
 });
 
-export const { toggleTheme, setTheme } = themeSlice.actions;
+export const { toggleTheme, setTheme, toggleDisplayMode, setDisplayMode } = themeSlice.actions;
 
 export default themeSlice.reducer;

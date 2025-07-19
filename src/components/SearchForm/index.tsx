@@ -5,12 +5,13 @@ import SearchInput from "@/components/SearchForm/SearchInput";
 import SelectForm from "@/components/SearchForm/SelectForm";
 import { BookSearchParams } from "@/services/SearchRequest";
 import type { FormValues } from "@/types/searchFormValue";
-import { useAppDispatch } from "@/redux/hooks";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 // import { useSelector } from "react-redux";
 // import { RootState } from "@/redux/store";
 import {
     resetBooks,
     searchBooks,
+    searchBooksWithPagination,
     setSearchParams,
     setUrlParams,
 } from "@/redux/slices/booksSlice";
@@ -23,6 +24,7 @@ const SearchForm: React.FC = () => {
     }
     const [form] = Form.useForm();
     const dispatch = useAppDispatch();
+    const { displayMode } = useAppSelector((state) => state.theme);
 
     const handleSearch = (values: Partial<BookSearchParams>) => {
         dispatch(resetBooks()); // 重置书籍列表
@@ -34,7 +36,12 @@ const SearchForm: React.FC = () => {
         };
         dispatch(setSearchParams(newParams)); // 设置新的搜索参数
         dispatch(setUrlParams()); // 更新 URL 参数
-        dispatch(searchBooks(newParams)); // 执行搜索操作
+        // 根据显示模式使用不同的搜索action
+        if (displayMode === "pagination") {
+            dispatch(searchBooksWithPagination(newParams));
+        } else {
+            dispatch(searchBooks(newParams)); // 执行搜索操作
+        }
     };
 
     // 将表单值转换为搜索参数
