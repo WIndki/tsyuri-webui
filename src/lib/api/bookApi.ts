@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery, FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
 import { Book } from "@/types/book";
+import { retry } from "@reduxjs/toolkit/query";
 
 /**
  * 搜索请求参数接口，定义了书籍搜索时需要的各种参数
@@ -48,19 +49,23 @@ export interface ApiError {
     statusText?: string;
 }
 
-/**
- * 错误处理的基础查询包装器
- */
-const baseQueryWithErrorHandling = fetchBaseQuery({
+
+// 全局重试包装器，最多重试5次，指数退避最大30秒
+const baseQuery = retry(fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || "/api",
     prepareHeaders: (headers) => {
         headers.set("Content-Type", "application/json");
         headers.set("Accept", "application/json");
         return headers;
     },
-    // 允许跨域请求
     credentials: "include",
-    timeout: 10000,
+    timeout: 5000,// 设置请求超时时间为5秒
+}), {
+    maxRetries: 5,
+    backoff: async (attempt) => {
+        const delay = Math.min(1000 * 2 ** attempt, 30000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+    },
 });
 
 /**
@@ -68,7 +73,7 @@ const baseQueryWithErrorHandling = fetchBaseQuery({
  */
 export function getUserFriendlyErrorMessage(error: FetchBaseQueryError): string {
     let errorMessage = "网络请求失败";
-    
+
     if (error.status === 'FETCH_ERROR') {
         errorMessage = "网络连接失败，请检查您的网络连接";
     } else if (error.status === 'TIMEOUT_ERROR') {
@@ -101,7 +106,7 @@ export function getUserFriendlyErrorMessage(error: FetchBaseQueryError): string 
             default:
                 errorMessage = `请求失败 (${error.status})`;
         }
-        
+
         // 尝试从错误响应中提取更详细的错误信息
         if (error.data && typeof error.data === 'object') {
             const apiError = error.data as ApiError;
@@ -112,7 +117,7 @@ export function getUserFriendlyErrorMessage(error: FetchBaseQueryError): string 
             }
         }
     }
-    
+
     if (process.env.NEXT_PUBLIC_DEBUG === "true") {
         console.error("API错误详情:", {
             status: error.status,
@@ -121,7 +126,7 @@ export function getUserFriendlyErrorMessage(error: FetchBaseQueryError): string 
             originalError: error
         });
     }
-    
+
     return errorMessage;
 }
 
@@ -133,25 +138,25 @@ export function checkBusinessError(data: unknown): { isError: boolean; message?:
         const apiResponse = data as ApiResponse<unknown>;
         if (apiResponse.code && apiResponse.code !== '200' && apiResponse.code !== '0') {
             const message = apiResponse.msg || "操作失败，请稍后重试";
-            
+
             if (process.env.NEXT_PUBLIC_DEBUG === "true") {
                 console.error("业务逻辑错误:", {
                     code: apiResponse.code,
                     message: message
                 });
             }
-            
+
             return { isError: true, message };
         }
     }
-    
+
     return { isError: false };
 }
 
 // 定义一个服务使用基础 URL 和预期的端点
 export const bookApi = createApi({
     reducerPath: "bookApi",
-    baseQuery: baseQueryWithErrorHandling,
+    baseQuery: baseQuery,
     // 标签类型，用于缓存失效
     tagTypes: ["Book"],
     endpoints: (builder) => ({
@@ -176,16 +181,17 @@ export const bookApi = createApi({
                     method: "GET",
                 };
             },
+            // 重试逻辑已由全局baseQuery处理，无需在此配置extraOptions
             // 为缓存提供标签
             providesTags: (result, error, params) => {
                 // 为每个搜索参数组合生成唯一的缓存标签
                 const cacheKey = JSON.stringify(params);
                 return result
                     ? [
-                          ...result.data.list.map(({ id }) => ({ type: "Book" as const, id })),
-                          { type: "Book", id: "LIST" },
-                          { type: "Book", id: cacheKey }, // 基于参数的唯一缓存标签
-                      ]
+                        ...result.data.list.map(({ id }) => ({ type: "Book" as const, id })),
+                        { type: "Book", id: "LIST" },
+                        { type: "Book", id: cacheKey }, // 基于参数的唯一缓存标签
+                    ]
                     : [{ type: "Book", id: "LIST" }, { type: "Book", id: cacheKey }];
             },
             // 缓存配置：命中缓存后不再发起请求
@@ -206,7 +212,7 @@ export const bookApi = createApi({
                         }
                         return result;
                     }, {});
-                
+
                 return JSON.stringify(sortedParams);
             },
         }),
