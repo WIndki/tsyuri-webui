@@ -35,12 +35,12 @@ export {
     resetSearchParams,
     setCurrentPage,
     incrementPage,
-    setLastSuccessfulPage,
+    rollbackToLastSuccessfulState,
     resetToFirstPage,
     initializeFromRouter,
     selectSearchParams,
     selectCurrentPage,
-    selectLastSuccessfulPage
+    selectLastSuccessfulState
 } from "./features/search/searchSlice";
 
 // Router

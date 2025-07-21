@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchBooksQuery, useLazySearchBooksQuery, BookSearchParams, getUserFriendlyErrorMessage, checkBusinessError } from "@/lib/api/bookApi";
 import { useAppSelector, useAppDispatch } from "@/lib/hooks";
-import { selectSearchParams, setSearchParams, incrementPage, resetToFirstPage } from "@/lib/features/search/searchSlice";
+import { selectSearchParams, setSearchParams, incrementPage, resetToFirstPage, saveSuccessfulState, rollbackToLastSuccessfulState } from "@/lib/features/search/searchSlice";
 import { selectDisplayMode } from "@/lib/features/theme/themeSlice";
 import { Book } from "@/types/book";
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
@@ -61,11 +61,13 @@ export function useInfiniteBooks() {
 
     // 处理数据更新
     useEffect(() => {
-        if (data?.data?.list) {
+        if (data?.data?.list && data.code === '200') {
             // 检查业务逻辑错误
             const businessError = checkBusinessError(data);
             if (businessError.isError) {
                 console.error("业务逻辑错误:", businessError.message);
+                // 发生错误时回滚到上次成功状态
+                dispatch(rollbackToLastSuccessfulState());
                 return;
             }
             
@@ -87,11 +89,23 @@ export function useInfiniteBooks() {
                 // 检查是否还有更多数据
                 setHasMore(currentPage * pageSize < totalCount);
                 
+                // 保存成功的搜索状态
+                dispatch(saveSuccessfulState());
+                
                 // 书籍数据更新完成
                 setIsUpdatingBooks(false);
             }, 0);
         }
-    }, [data]);
+    }, [data, dispatch]);
+
+    // 处理 API 错误
+    useEffect(() => {
+        if (error) {
+            console.error("API 请求错误:", error);
+            // 发生错误时回滚到上次成功状态
+            dispatch(rollbackToLastSuccessfulState());
+        }
+    }, [error, dispatch]);
 
     const loadMore = useCallback(() => {
         if (!isLoading && !isFetching && !isUpdatingBooks && hasMore) {
@@ -145,11 +159,13 @@ export function usePaginatedBooks() {
 
     // 处理数据更新
     useEffect(() => {
-        if (data?.data?.list) {
+        if (data?.data?.list && data.code === '200') {
             // 检查业务逻辑错误
             const businessError = checkBusinessError(data);
             if (businessError.isError) {
                 console.error("业务逻辑错误:", businessError.message);
+                // 发生错误时回滚到上次成功状态
+                dispatch(rollbackToLastSuccessfulState());
                 return;
             }
             
@@ -157,13 +173,27 @@ export function usePaginatedBooks() {
             
             // 使用 setTimeout 确保状态更新是异步的，防止阻塞渲染
             setTimeout(() => {
+                const currentPage = parseInt(data.data.pageNum);
                 setBooks(data.data.list);
-                setCurrentPage(parseInt(data.data.pageNum));
+                setCurrentPage(currentPage);
                 console.log("📖 usePaginatedBooks - 更新书籍数据:", data.data.list);
+                
+                // 保存成功的搜索状态
+                dispatch(saveSuccessfulState());
+                
                 setIsUpdatingBooks(false); // 书籍数据更新完成
             }, 0);
         }
-    }, [data]);
+    }, [data, dispatch]);
+
+    // 处理 API 错误
+    useEffect(() => {
+        if (error) {
+            console.error("API 请求错误:", error);
+            // 发生错误时回滚到上次成功状态
+            dispatch(rollbackToLastSuccessfulState());
+        }
+    }, [error, dispatch]);
 
     const changePage = useCallback((page: number) => {
         if (process.env.NEXT_PUBLIC_DEBUG === "true") {
@@ -196,6 +226,7 @@ export function usePaginatedBooks() {
  * 用于手动触发搜索的hook
  */
 export function useLazyBooks() {
+    const dispatch = useAppDispatch();
     const [triggerSearch, { data, error, isLoading, isFetching }] = useLazySearchBooksQuery();
     const [books, setBooks] = useState<Book[]>([]);
     const [isUpdatingBooks, setIsUpdatingBooks] = useState(false);
@@ -207,6 +238,8 @@ export function useLazyBooks() {
             const businessError = checkBusinessError(data);
             if (businessError.isError) {
                 console.error("业务逻辑错误:", businessError.message);
+                // 发生错误时回滚到上次成功状态
+                dispatch(rollbackToLastSuccessfulState());
                 return;
             }
             
@@ -215,10 +248,23 @@ export function useLazyBooks() {
             // 使用 setTimeout 确保状态更新是异步的，防止阻塞渲染
             setTimeout(() => {
                 setBooks(data.data.list);
+                
+                // 保存成功的搜索状态
+                dispatch(saveSuccessfulState());
+                
                 setIsUpdatingBooks(false); // 书籍数据更新完成
             }, 0);
         }
-    }, [data]);
+    }, [data, dispatch]);
+
+    // 处理 API 错误
+    useEffect(() => {
+        if (error) {
+            console.error("API 请求错误:", error);
+            // 发生错误时回滚到上次成功状态
+            dispatch(rollbackToLastSuccessfulState());
+        }
+    }, [error, dispatch]);
 
     const search = useCallback((params: BookSearchParams) => {
         if (process.env.NEXT_PUBLIC_DEBUG === "true") {

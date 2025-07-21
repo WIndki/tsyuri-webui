@@ -27,7 +27,7 @@ function cleanSearchParams(params: Partial<BookSearchParams>): Record<string, st
  */
 interface SearchState {
     searchParams: BookSearchParams;
-    lastSuccessfulPage: number | null;
+    lastSuccessfulState: BookSearchParams | null; // 保存上一次成功的搜索状态
 }
 
 const initialSearchParams: BookSearchParams = {
@@ -47,7 +47,7 @@ const initialSearchParams: BookSearchParams = {
 
 const initialState: SearchState = {
     searchParams: initialSearchParams,
-    lastSuccessfulPage: null,
+    lastSuccessfulState: null,
 };
 
 const searchSlice = createSlice({
@@ -68,7 +68,7 @@ const searchSlice = createSlice({
                 console.log("🔍 Search: 重置搜索参数");
             }
             state.searchParams = initialSearchParams;
-            state.lastSuccessfulPage = null;
+            state.lastSuccessfulState = null;
         },
         setCurrentPage: (state, action: PayloadAction<number>) => {
             if (process.env.NEXT_PUBLIC_DEBUG === "true") {
@@ -82,18 +82,32 @@ const searchSlice = createSlice({
             }
             state.searchParams.curr += 1;
         },
-        setLastSuccessfulPage: (state, action: PayloadAction<number>) => {
+        // 保存成功的搜索状态
+        saveSuccessfulState: (state) => {
             if (process.env.NEXT_PUBLIC_DEBUG === "true") {
-                console.log("🔍 Search: 设置最后成功页", action.payload);
+                console.log("🔍 Search: 保存成功状态", state.searchParams);
             }
-            state.lastSuccessfulPage = action.payload;
+            state.lastSuccessfulState = JSON.parse(JSON.stringify(state.searchParams));
+        },
+        // 回滚到上一次成功的状态
+        rollbackToLastSuccessfulState: (state) => {
+            if (state.lastSuccessfulState) {
+                if (process.env.NEXT_PUBLIC_DEBUG === "true") {
+                    console.log("🔍 Search: 回滚到上次成功状态", state.lastSuccessfulState);
+                }
+                state.searchParams = JSON.parse(JSON.stringify(state.lastSuccessfulState));
+            } else {
+                if (process.env.NEXT_PUBLIC_DEBUG === "true") {
+                    console.log("🔍 Search: 没有可回滚的状态，重置到初始状态");
+                }
+                state.searchParams = initialSearchParams;
+            }
         },
         resetToFirstPage: (state) => {
             if (process.env.NEXT_PUBLIC_DEBUG === "true") {
                 console.log("🔍 Search: 重置到第一页");
             }
             state.searchParams.curr = 1;
-            state.lastSuccessfulPage = null;
         },
 
         // 从路由状态初始化搜索参数（仅限 /search 路径）
@@ -120,14 +134,15 @@ export const {
     resetSearchParams,
     setCurrentPage,
     incrementPage,
-    setLastSuccessfulPage,
+    saveSuccessfulState,
+    rollbackToLastSuccessfulState,
     resetToFirstPage,
     initializeFromRouter,
 } = searchSlice.actions;
 
 export const selectSearchParams = (state: RootState) => state.search.searchParams;
 export const selectCurrentPage = (state: RootState) => state.search.searchParams.curr;
-export const selectLastSuccessfulPage = (state: RootState) => state.search.lastSuccessfulPage;
+export const selectLastSuccessfulState = (state: RootState) => state.search.lastSuccessfulState;
 
 // 创建搜索监听器中间件
 export const searchListenerMiddleware = createListenerMiddleware();
