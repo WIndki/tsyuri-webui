@@ -21,6 +21,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
     onRetry,
     loading = false
 }) => {
+    console.log("EmptyState render");
     return (
         <Empty 
             description={description}
@@ -42,4 +43,4 @@ const EmptyState: React.FC<EmptyStateProps> = ({
 
 EmptyState.displayName = "EmptyState";
 
-export default EmptyState;
+export default React.memo(EmptyState);

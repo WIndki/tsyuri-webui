@@ -42,6 +42,7 @@ const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
 
     // overlay类型使用模态框实现
     if (type === "overlay") {
+        console.log("LoadingIndicator - modal");
         return (
             <Modal
                 open={visible}
@@ -76,4 +77,4 @@ const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
 
 LoadingIndicator.displayName = "LoadingIndicator";
 
-export default LoadingIndicator;
+export default React.memo(LoadingIndicator);

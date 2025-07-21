@@ -21,4 +21,4 @@ const Content = ({ children }: { children: React.ReactNode }) => {
     );
 };
 
-export default Content;
+export default React.memo(Content);

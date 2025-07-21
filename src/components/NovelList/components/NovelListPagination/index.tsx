@@ -2,14 +2,12 @@
 import React, { useCallback, memo, useMemo, useEffect, useRef } from "react";
 import { Row, App, Pagination } from "antd";
 import BookCard from "@/components/NovelCard";
-import { RootState } from "@/redux/store";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { searchBooksWithPagination, setSearchParams } from "@/redux/slices/booksSlice";
 import BookDetailModal from "@/components/BookDetailModal";
 import { Book } from "@/types/book";
 import LoadingIndicator from "../LoadingIndicator";
 import EmptyState from "../EmptyState";
-import useErrorHandler from "../../hooks/useErrorHandler";
+import { usePaginatedBooks, useAppDispatch, useAppSelector, useErrorHandler } from "@/lib";
+import { setSearchParams, selectSearchParams } from "@/lib";
 import styles from "../../styles.module.css";
 
 /**
@@ -35,35 +33,33 @@ const NovelListPagination: React.FC<NovelListPaginationProps> = ({
     }
     
     const dispatch = useAppDispatch();
+    const searchParams = useAppSelector(selectSearchParams);
     const { modal } = App.useApp();
-    const { books, loading, searchParams, totalCount, lastSuccessfulPage } = useAppSelector(
-        (state: RootState) => state.books
-    );
-    
-    // 使用统一的错误处理Hook，错误会自动通过模态框显示
-    const { error, retry: handleRetryLoadData } = useErrorHandler();
+    const { books, isLoading, totalCount, currentPage, pageSize, changePage, error } = usePaginatedBooks();
+    const { showErrorModal } = useErrorHandler();
     
     // 使用 useRef 来跟踪当前请求的页码
     const pendingPageRef = useRef<number | null>(null);
 
-    // 从状态中获取分页信息
-    const { currentPage, pageSize } = useMemo(() => {
-        return {
-            currentPage: searchParams.curr,
-            pageSize: searchParams.limit,
-        };
-    }, [searchParams.curr, searchParams.limit]);
-
-    // 监听最后成功页码变化，请求成功后滚动到顶部
+    // 自动处理错误
     useEffect(() => {
-        // 当lastSuccessfulPage变化且等于当前期望的页码时，表示请求成功
-        if (lastSuccessfulPage !== null && lastSuccessfulPage === pendingPageRef.current) {
+        if (error) {
+            showErrorModal(error, () => changePage(currentPage), {
+                title: "加载书籍失败"
+            });
+        }
+    }, [error, showErrorModal, changePage, currentPage]);
+
+    // 监听页码变化，请求成功后滚动到顶部
+    useEffect(() => {
+        // 当currentPage变化且等于当前期望的页码时，表示请求成功
+        if (currentPage !== null && currentPage === pendingPageRef.current) {
             // 滚动到顶部
             window.scrollTo({ top: 0, behavior: 'smooth' });
             // 清除pending状态
             pendingPageRef.current = null;
         }
-    }, [lastSuccessfulPage]);
+    }, [currentPage]);
 
     // 展示小说详情Modal
     const showBookDetailModal = useCallback(
@@ -108,27 +104,35 @@ const NovelListPagination: React.FC<NovelListPaginationProps> = ({
 
     // 处理分页变化
     const handlePageChange = useCallback(
-        (page: number, pageSize?: number) => {
-            if (loading) return;
+        (page: number, newPageSize?: number) => {
+            if (isLoading) return;
             
             // 记录即将请求的页码
             pendingPageRef.current = page;
 
-            const newParams = {
-                ...searchParams,
-                curr: page,
-                limit: pageSize || searchParams.limit,
-            };
-
-            dispatch(setSearchParams(newParams));
-            dispatch(searchBooksWithPagination(newParams));
+            // 如果pageSize变化，需要更新搜索参数
+            if (newPageSize && newPageSize !== pageSize) {
+                const newParams = { 
+                    curr: page,
+                    limit: newPageSize
+                };
+                dispatch(setSearchParams(newParams));
+            } else {
+                changePage(page);
+            }
         },
-        [loading, searchParams, dispatch]
+        [isLoading, pageSize, changePage, dispatch, searchParams]
     );
+
+    // 重试函数
+    const handleRetryLoadData = useCallback(() => {
+        // RTK Query 会自动重试，这里可以触发重新获取
+        changePage(currentPage);
+    }, [changePage, currentPage]);
 
     // 使用 useMemo 缓存书籍列表，避免不必要的重新渲染
     const bookList = useMemo(() => {
-        return books.map((book, index) => (
+        return books.map((book: Book, index: number) => (
             <BookCard
                 key={book.id || index}
                 book={book}
@@ -139,17 +143,17 @@ const NovelListPagination: React.FC<NovelListPaginationProps> = ({
 
     return (
         <>
-            {books.length === 0 && !loading && !error ? (
-                <EmptyState 
+            {books.length === 0 && !isLoading && !error ? (
+                <EmptyState
                     description={emptyText}
                     showRetry={true}
                     onRetry={handleRetryLoadData}
-                    loading={loading}
+                    loading={isLoading}
                 />
             ) : (
                 <>
-                {loading && (
-                    <LoadingIndicator type="overlay" visible={loading} />
+                {isLoading && (
+                    <LoadingIndicator type="overlay" visible={true} />
                 )}
                     <Row
                         justify="center"
@@ -178,7 +182,7 @@ const NovelListPagination: React.FC<NovelListPaginationProps> = ({
                                 `第 ${range[0]}-${range[1]} 项，共 ${total} 项`
                             }
                             onChange={handlePageChange}
-                            disabled={loading}
+                            disabled={isLoading}
                             pageSizeOptions={['10', '20', '30', '50']}
                             size="default"
                         />

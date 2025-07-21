@@ -1,47 +1,39 @@
 "use client";
-import React from "react";
-import { Form, Flex } from "antd";
+import React, { Suspense } from "react";
+import { Form, Flex, Spin } from "antd";
 import SearchInput from "@/components/SearchForm/SearchInput";
 import SelectForm from "@/components/SearchForm/SelectForm";
-import { BookSearchParams } from "@/services/SearchRequest";
 import type { FormValues } from "@/types/searchFormValue";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-// import { useSelector } from "react-redux";
-// import { RootState } from "@/redux/store";
 import {
-    resetBooks,
-    searchBooks,
-    searchBooksWithPagination,
+    useAppDispatch,
+    useAppSelector,
+    BookSearchParams,
     setSearchParams,
-    setUrlParams,
-} from "@/redux/slices/booksSlice";
+    selectSearchParams,
+} from "@/lib";
 import styles from "./styles.module.css";
 import Debounce from "@/utils/Debounce";
 
-const SearchForm: React.FC = () => {
+// 内部组件，使用路由同步
+const SearchFormContent: React.FC = () => {
     if (process.env.NEXT_PUBLIC_DEBUG === "true") {
-        console.log("SearchForm render");
+        console.log("SearchFormContent render");
     }
     const [form] = Form.useForm();
     const dispatch = useAppDispatch();
-    const { displayMode } = useAppSelector((state) => state.theme);
+    // const displayMode = useAppSelector(selectDisplayMode);
+    const searchParams = useAppSelector(selectSearchParams);
 
     const handleSearch = (values: Partial<BookSearchParams>) => {
-        dispatch(resetBooks()); // 重置书籍列表
+        // 使用新的搜索参数管理方式
         const newParams = {
-            // ...searchParams,
+            ...searchParams,
             ...values,
             curr: 1, // 重置当前页码
             limit: 20, // 每页显示20本书
         };
         dispatch(setSearchParams(newParams)); // 设置新的搜索参数
-        dispatch(setUrlParams()); // 更新 URL 参数
-        // 根据显示模式使用不同的搜索action
-        if (displayMode === "pagination") {
-            dispatch(searchBooksWithPagination(newParams));
-        } else {
-            dispatch(searchBooks(newParams)); // 执行搜索操作
-        }
+        // RTK Query 会自动根据参数变化触发搜索
     };
 
     // 将表单值转换为搜索参数
@@ -76,30 +68,54 @@ const SearchForm: React.FC = () => {
         true
     );
 
+    // 获取当前模式下的加载状态
+    // 只有在初始化完成后才执行查询
+    // const { isLoading: infiniteLoading } = useInfiniteBooks();
+    // const { isLoading: paginatedLoading } = usePaginatedBooks();
+    // const isLoading = displayMode === "infinite" ? infiniteLoading : paginatedLoading;
+
     return (
         <div className={styles.searchFormContainer}>
             <Form
                 form={form}
                 onFinish={debounceHandleSubmit}
                 className={styles.searchForm}
-                // initialValues={{
-                //     keyword: "",
-                //     tags: ["变百", "百合"],
-                //     sort: "last_index_update_time",
-                //     wordCountMin: "",
-                //     wordCountMax: "",
-                //     purity: "",
-                //     updatePeriod: "",
-                //     bookStatus: "",
-                //     sources: ["SF轻小说", "次元姬", "刺猬猫", "起点"],
-                // }}
             >
                 <Flex vertical gap={16}>
-                    <SearchInput onSubmit={() => form.submit()} />
+                    <SearchInput
+                        onSubmit={() => form.submit()}
+                        // isLoading={isLoading}
+                    />
                     <SelectForm />
                 </Flex>
             </Form>
         </div>
+    );
+};
+
+// 主组件，用 Suspense 包装内部组件
+const SearchForm: React.FC = () => {
+    if (process.env.NEXT_PUBLIC_DEBUG === "true") {
+        console.log("SearchForm render");
+    }
+
+    return (
+        <Suspense
+            fallback={
+                <div className={styles.searchFormContainer}>
+                    <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'center', 
+                        alignItems: 'center',
+                        padding: '20px' 
+                    }}>
+                        <Spin size="default" />
+                    </div>
+                </div>
+            }
+        >
+            <SearchFormContent />
+        </Suspense>
     );
 };
 SearchForm.displayName = "SearchForm";

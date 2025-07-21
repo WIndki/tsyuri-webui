@@ -1,13 +1,7 @@
 import React from "react";
 import { Modal, Space, Tag, Tooltip } from "antd";
 import Debounce from "@/utils/Debounce";
-import { useAppDispatch } from "@/redux/hooks";
-import {
-    resetBooks,
-    searchBooks,
-    setSearchParams,
-    setUrlParams,
-} from "@/redux/slices/booksSlice";
+import { useAppDispatch, useAppSelector, setSearchParams, selectSearchParams } from "@/lib";
 
 /**
  * BookTagsProps 接口定义了书籍标签组件所需的属性
@@ -25,6 +19,8 @@ const BookTags: React.FC<BookTagsProps> = ({ tag, purity }) => {
         console.log("BookTags render");
     }
     const dispatch = useAppDispatch();
+    const searchParams = useAppSelector(selectSearchParams);
+    
     // 格式化标签显示
     const renderTags = (tagString: string) => {
         if (!tagString) return [];
@@ -39,16 +35,14 @@ const BookTags: React.FC<BookTagsProps> = ({ tag, purity }) => {
             if (clickedTagElement instanceof HTMLElement) {
                 const tagName = (clickedTagElement.textContent || "").trim();
                 if (tagName) {
-                    dispatch(resetBooks()); // 重置书籍列表
+                    // 使用新的搜索参数管理方式
                     const newParams = {
-                        // ...searchParams,
+                        ...searchParams,
                         tag: tagName, // 设置新的标签过滤条件
                         curr: 1, // 重置当前页码
                         limit: 20, // 每页显示20本书
                     };
                     dispatch(setSearchParams(newParams)); // 设置新的搜索参数
-                    dispatch(setUrlParams()); // 更新 URL 参数
-                    dispatch(searchBooks(newParams)); // 执行搜索操作
                     Modal.destroyAll(); // 关闭所有模态框
                 }
             }

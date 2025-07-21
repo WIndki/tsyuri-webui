@@ -8,13 +8,20 @@ import {
     UnorderedListOutlined,
     AppstoreOutlined,
 } from "@ant-design/icons";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { toggleTheme, toggleDisplayMode } from "@/redux/slices/themeSlice";
+import { 
+    useAppDispatch, 
+    useAppSelector, 
+    toggleTheme, 
+    toggleDisplayMode,
+    selectThemeMode,
+    selectDisplayMode
+} from "@/lib";
 import About from "./About";
 
 const Toolbar: React.FC = () => {
     const dispatch = useAppDispatch();
-    const { mode, displayMode } = useAppSelector((state) => state.theme);
+    const mode = useAppSelector(selectThemeMode);
+    const displayMode = useAppSelector(selectDisplayMode);
     const { modal } = App.useApp();
 
     // 切换主题
@@ -72,4 +79,4 @@ const Toolbar: React.FC = () => {
     );
 };
 
-export default Toolbar;
+export default React.memo(Toolbar);

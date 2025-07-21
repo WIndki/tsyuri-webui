@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Layout from "@/components/Layout";
-import { ReduxProvider } from "@/redux/provider";
+import { StoreProvider } from "@/lib/provider";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 
 import "./globals.css";
@@ -19,11 +19,11 @@ export default function RootLayout({
     return (
         <html lang="zh-cn">
             <body>
-                <ReduxProvider>
+                <StoreProvider>
                     <AntdRegistry>
                         <Layout>{children}</Layout>
                     </AntdRegistry>
-                </ReduxProvider>
+                </StoreProvider>
             </body>
         </html>
     );

@@ -1,16 +1,13 @@
 "use client";
-import React, { useCallback, memo, useMemo } from "react";
+import React, { useCallback, memo, useMemo, useEffect } from "react";
 import { Row, App } from "antd";
 import BookCard from "@/components/NovelCard";
-import { RootState } from "@/redux/store";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { searchBooks, setSearchParams } from "@/redux/slices/booksSlice";
+import { useErrorHandler, useInfiniteBooks } from "@/lib";
 import BookDetailModal from "@/components/BookDetailModal";
 import { Book } from "@/types/book";
 import InfiniteScroll from "react-infinite-scroll-component";
 import LoadingIndicator from "../LoadingIndicator";
 import EmptyState from "../EmptyState";
-import useErrorHandler from "../../hooks/useErrorHandler";
 import styles from "../../styles.module.css";
 
 /**
@@ -36,14 +33,19 @@ const NovelListInfinite: React.FC<NovelListInfiniteProps> = ({ emptyText = "暂�
     if (process.env.NEXT_PUBLIC_DEBUG === "true") {
         console.log("NovelListInfinite render");
     }
-    const dispatch = useAppDispatch();
+
     const { modal } = App.useApp();
-    const { books, loading, hasMore, searchParams } = useAppSelector(
-        (state: RootState) => state.books
-    );
+    const { books, isLoading, hasMore, loadMore, refresh, error } = useInfiniteBooks();
+    const { showErrorModal } = useErrorHandler();
     
-    // 使用统一的错误处理Hook，错误会自动通过模态框显示
-    const { error, retry: handleRetryLoadData } = useErrorHandler();
+    // 自动处理错误
+    useEffect(() => {
+        if (error) {
+            showErrorModal(error, () => loadMore(), {
+                title: "加载书籍失败"
+            });
+        }
+    }, [error, showErrorModal, loadMore, refresh]);
 
     // 展示小说详情Modal
     const showBookDetailModal = useCallback(
@@ -52,8 +54,6 @@ const NovelListInfinite: React.FC<NovelListInfiniteProps> = ({ emptyText = "暂�
                 title: "小说详情",
                 footer: null,
                 width: 700,
-                // destroyOnClose: true,
-                // destroyOnHidden: true,
                 centered: true,
                 maskClosable: true,
                 closable: true,
@@ -88,46 +88,30 @@ const NovelListInfinite: React.FC<NovelListInfiniteProps> = ({ emptyText = "暂�
         [showBookDetailModal]
     );
 
-    // 加载更多数据
-    const loadMoreData = useCallback(() => {
-        if (loading || !hasMore || error) return;
-
-        const nextPage = searchParams.curr + 1;
-        const newParams = {
-            ...searchParams,
-            curr: nextPage,
-        };
-
-        dispatch(setSearchParams(newParams));
-        dispatch(searchBooks(newParams));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [loading, hasMore, searchParams, dispatch]);
-
     // 使用 useMemo 缓存书籍列表，避免不必要的重新渲染
     const bookList = useMemo(() => {
         return books.map((book, index) => (
-            // 修改：直接使用 BookCard, Col is now inside BookCard
             <BookCard
-                key={book.id || index} // 优先使用 book.id (如果存在)，否则回退到 index
+                key={index}
                 book={book}
-                onCardClick={handleBookCardClick} // Pass the callback directly
+                onCardClick={handleBookCardClick}
             />
         ));
     }, [books, handleBookCardClick]);
 
     return (
         <>
-            {books.length === 0 && !loading && !error ? (
-                <EmptyState 
+            {!hasMore && books.length === 0 && !isLoading && !error ? (
+                <EmptyState
                     description={emptyText}
                     showRetry={true}
-                    onRetry={handleRetryLoadData}
-                    loading={loading}
+                    onRetry={refresh}
+                    loading={isLoading}
                 />
             ) : (
                 <InfiniteScroll
                     dataLength={books.length}
-                    next={loadMoreData}
+                    next={loadMore}
                     hasMore={hasMore && !error}
                     loader={
                         <LoadingIndicator type="center" />
@@ -156,6 +140,8 @@ const NovelListInfinite: React.FC<NovelListInfiniteProps> = ({ emptyText = "暂�
         </>
     );
 };
+
 NovelListInfinite.displayName = "NovelListInfinite";
 
 export default memo(NovelListInfinite);
+

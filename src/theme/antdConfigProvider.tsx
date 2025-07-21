@@ -1,21 +1,30 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { ConfigProvider, theme, App } from "antd";
-import { useAppSelector } from "@/redux/hooks";
+import { useAppSelector, selectThemeMode } from "@/lib";
 
 const ThemeConfigProvider = ({ children }: { children: React.ReactNode }) => {
-    const { mode } = useAppSelector((state) => state.theme);
+    const storeMode = useAppSelector(selectThemeMode);
+    const [currentMode, setCurrentMode] = useState<"light" | "dark">("light");
+    const [isHydrated, setIsHydrated] = useState(false);
 
-    // 根据主题模式选择算法
-    const algorithm =
-        mode === "dark" ? theme.darkAlgorithm : theme.defaultAlgorithm;
+    // 在客户端水合后设置正确的主题
+    useEffect(() => {
+        setIsHydrated(true);
+        setCurrentMode(storeMode);
+    }, [storeMode]);
 
     // 在客户端使用 useEffect 来设置 html 的 data-theme 属性
     useEffect(() => {
-        document.documentElement.setAttribute("data-theme", mode);
-        // 兼容旧的方式，同时设置 body
-        document.body.setAttribute("data-theme", mode);
-    }, [mode]);
+        if (isHydrated && typeof window !== "undefined") {
+            document.documentElement.setAttribute("data-theme", currentMode);
+            document.body.setAttribute("data-theme", currentMode);
+        }
+    }, [currentMode, isHydrated]);
+
+    // 根据主题模式选择算法 - 在水合之前使用默认主题
+    const algorithm =
+        currentMode === "dark" ? theme.darkAlgorithm : theme.defaultAlgorithm;
 
     // 定义主题颜色
     const themeColors = {
@@ -40,7 +49,7 @@ const ThemeConfigProvider = ({ children }: { children: React.ReactNode }) => {
             theme={{
                 algorithm,
                 token: {
-                    ...themeColors[mode],
+                    ...themeColors[currentMode],
                     borderRadius: 4,
                     wireframe: false, // 使用填充设计
                 },

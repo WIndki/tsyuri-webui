@@ -111,4 +111,4 @@ export const useErrorModal = () => {
 
 ErrorModal.displayName = "ErrorModal";
 
-export default ErrorModal;
+export default React.memo(ErrorModal);

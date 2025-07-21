@@ -1,7 +1,7 @@
 "use client";
 import React, { memo } from "react";
-import { useAppSelector } from "@/redux/hooks";
-import { RootState } from "@/redux/store";
+import { useAppSelector } from "@/lib/hooks";
+import { selectDisplayMode } from "@/lib/features/theme/themeSlice";
 import NovelListInfinite from "./components/NovelListInfinite";
 import NovelListPagination from "./components/NovelListPagination";
 
@@ -27,7 +27,7 @@ const NovelList: React.FC<NovelListProps> = ({ emptyText = "暂无小说" }) => 
         console.log("NovelList render");
     }
     
-    const { displayMode } = useAppSelector((state: RootState) => state.theme);
+    const displayMode = useAppSelector(selectDisplayMode);
 
     if (displayMode === "pagination") {
         return <NovelListPagination emptyText={emptyText} />;
