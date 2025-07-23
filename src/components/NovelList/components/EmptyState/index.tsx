@@ -1,7 +1,7 @@
-"use client";
+;
 import React from "react";
-import { Empty, Button } from "antd";
-import { ReloadOutlined } from "@ant-design/icons";
+import { useEmptyState } from "./useEmptyState";
+import EmptyStateUI from "./EmptyStateUI";
 
 interface EmptyStateProps {
     description?: string;
@@ -11,9 +11,12 @@ interface EmptyStateProps {
 }
 
 /**
- * 统一的空状态组件
+ * EmptyState 组件 - 空状态主组件，组合了业务逻辑和UI渲染
  * @param props EmptyStateProps
  * @returns JSX.Element
+ * @description
+ * 该组件将业务逻辑和UI渲染分离，提高了组件的内聚性和可维护性。
+ * 业务逻辑封装在 useEmptyState hook 中，UI 渲染由 EmptyStateUI 组件负责。
  */
 const EmptyState: React.FC<EmptyStateProps> = ({
     description = "暂无数据",
@@ -22,22 +25,17 @@ const EmptyState: React.FC<EmptyStateProps> = ({
     loading = false
 }) => {
     console.log("EmptyState render");
+    
+    // 使用自定义hook获取业务逻辑
+    const { handleRetry } = useEmptyState();
+
     return (
-        <Empty 
+        <EmptyStateUI
             description={description}
-            style={{ padding: "2rem" }}
-        >
-            {showRetry && onRetry && (
-                <Button
-                    type="primary"
-                    icon={<ReloadOutlined />}
-                    onClick={onRetry}
-                    loading={loading}
-                >
-                    重新加载
-                </Button>
-            )}
-        </Empty>
+            showRetry={showRetry}
+            onRetry={onRetry ? () => handleRetry(onRetry) : undefined}
+            loading={loading}
+        />
     );
 };
 

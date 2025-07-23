@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Layout from "@/components/Layout";
+import { Layout } from "@/components";
 import { StoreProvider } from "@/lib/provider";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 

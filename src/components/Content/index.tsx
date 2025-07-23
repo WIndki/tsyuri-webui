@@ -1,24 +1,23 @@
 import React from "react";
-import { Layout } from "antd";
+import ContentUI from "./ContentUI";
+import { useContent } from "./useContent";
 
-const Content = ({ children }: { children: React.ReactNode }) => {
-    if (process.env.NEXT_PUBLIC_DEBUG === "true") {
-        console.log("Content render");
-    }
-    return (
-        <Layout.Content
-            style={{
-                // maxWidth: "50rem",
-                width: "100%",
-                margin: "0 auto",
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-            }}
-        >
-            {children}
-        </Layout.Content>
-    );
+interface ContentProps {
+  children: React.ReactNode;
+}
+
+const Content: React.FC<ContentProps> = ({ children }) => {
+  const { processContent } = useContent();
+
+  if (process.env.NEXT_PUBLIC_DEBUG === "true") {
+    console.log("Content render");
+  }
+
+  return (
+    <ContentUI processContent={processContent}>
+      {children}
+    </ContentUI>
+  );
 };
 
 export default React.memo(Content);

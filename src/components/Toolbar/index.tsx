@@ -1,40 +1,33 @@
 import React from "react";
-import { App, FloatButton } from "antd";
-import {
-    ArrowUpOutlined,
-    BulbOutlined,
-    BulbFilled,
-    QuestionOutlined,
-    UnorderedListOutlined,
-    AppstoreOutlined,
-} from "@ant-design/icons";
-import { 
-    useAppDispatch, 
-    useAppSelector, 
-    toggleTheme, 
-    toggleDisplayMode,
-    selectThemeMode,
-    selectDisplayMode
-} from "@/lib";
-import About from "./About";
+import { App } from "antd";
+import ToolbarUI from "./ToolbarUI";
+import { useToolbar } from "./useToolbar";
+import About from "./About/index";
 
+/**
+ * Toolbar 组件 - 工具栏主组件，组合了业务逻辑和UI渲染
+ * @returns JSX.Element
+ * @description
+ * 该组件将业务逻辑和UI渲染分离，提高了组件的内聚性和可维护性。
+ * 业务逻辑封装在 useToolbar hook 中，UI 渲染由 ToolbarUI 组件负责。
+ */
 const Toolbar: React.FC = () => {
-    const dispatch = useAppDispatch();
-    const mode = useAppSelector(selectThemeMode);
-    const displayMode = useAppSelector(selectDisplayMode);
+    if (process.env.NEXT_PUBLIC_DEBUG === "true") {
+        console.log("Toolbar render");
+    }
+
     const { modal } = App.useApp();
+    
+    // 使用自定义hook获取业务逻辑
+    const { 
+        mode,
+        displayMode,
+        handleToggleTheme,
+        handleToggleDisplayMode
+    } = useToolbar();
 
-    // 切换主题
-    const handleToggleTheme = () => {
-        dispatch(toggleTheme());
-    };
-
-    // 切换显示模式
-    const handleToggleDisplayMode = () => {
-        dispatch(toggleDisplayMode());
-    };
-
-    const handleOpenAbout = () => {
+    // 处理打开关于对话框
+    const handleOpenAboutModal = () => {
         modal.info({
             title: "关于",
             centered: true,
@@ -47,36 +40,16 @@ const Toolbar: React.FC = () => {
     };
 
     return (
-        <FloatButton.Group
-            trigger="click"
-            shape="circle"
-            style={{ right: 12, bottom: 155, zIndex: 99 }}
-            icon={<ArrowUpOutlined />}
-        >
-            <FloatButton.BackTop
-                icon={<ArrowUpOutlined />}
-                tooltip="返回顶部"
-                style={{
-                    transition: "opacity 0.3s ease-in-out",
-                }}
-            />
-            <FloatButton
-                icon={displayMode === "pagination" ? <UnorderedListOutlined /> : <AppstoreOutlined />}
-                tooltip={displayMode === "pagination" ? "切换到无限滚动模式" : "切换到分页模式"}
-                onClick={handleToggleDisplayMode}
-            />
-            <FloatButton
-                icon={mode === "dark" ? <BulbFilled /> : <BulbOutlined />}
-                tooltip={mode === "dark" ? "切换到亮色模式" : "切换到暗色模式"}
-                onClick={handleToggleTheme}
-            />
-            <FloatButton
-                icon={<QuestionOutlined />}
-                tooltip="关于"
-                onClick={handleOpenAbout}
-            />
-        </FloatButton.Group>
+        <ToolbarUI
+            displayMode={displayMode}
+            mode={mode}
+            handleToggleTheme={handleToggleTheme}
+            handleToggleDisplayMode={handleToggleDisplayMode}
+            handleOpenAbout={handleOpenAboutModal}
+        />
     );
 };
+
+Toolbar.displayName = "Toolbar";
 
 export default React.memo(Toolbar);

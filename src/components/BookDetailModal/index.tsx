@@ -1,50 +1,42 @@
 import React from "react";
-import { Typography, Divider, Skeleton } from "antd";
+import { useBookDetailModal } from "./useBookDetailModal";
+import BookDetailModalUI from "./BookDetailModalUI";
 import type { Book } from "@/types/book";
-import BookCover from "./BookCover";
-import BookInfo from "./BookInfo";
-import BookTags from "./BookTags";
-import styles from "./styles.module.css";
-import dynamic from "next/dynamic";
 
-const { Paragraph } = Typography;
-
-/**
- * BookDetailModalProps 接口定义了书籍详情模态框组件所需的属性
- * @interface BookDetailModalProps
- * @property {Book} book - 需要显示详情的书籍对象
- */
 interface BookDetailModalProps {
     book: Book;
 }
 
+/**
+ * BookDetailModal 组件 - 书籍详情主组件，组合了业务逻辑和UI渲染
+ * @param props BookDetailModalProps
+ * @returns JSX.Element
+ * @description
+ * 该组件将业务逻辑和UI渲染分离，提高了组件的内聚性和可维护性。
+ * 业务逻辑封装在 useBookDetailModal hook 中，UI 渲染由 BookDetailModalUI 组件负责。
+ */
 const BookDetailModal: React.FC<BookDetailModalProps> = ({ book }) => {
     if (process.env.NEXT_PUBLIC_DEBUG === "true") {
         console.log("BookDetailModal render");
     }
-    return (
-        <>
-            <div className={styles.bookDetailContainer}>
-                <BookCover picUrl={book.picUrl} bookName={book.bookName} />
-                <BookInfo book={book} />
-            </div>
-            <Divider orientation="left">简介</Divider>
-            <Paragraph>{book.bookDesc}</Paragraph>
 
-            <Divider orientation="left">标签</Divider>
-            <BookTags tag={book.tag} purity={book.purity} />
-        </>
+    // 使用自定义hook获取业务逻辑
+    const { 
+        processBookDetail,
+        formatBookWordCount,
+        formatBookUpdateTime
+    } = useBookDetailModal();
+
+    return (
+        <BookDetailModalUI
+            book={book}
+            processBookDetail={processBookDetail}
+            formatBookWordCount={formatBookWordCount}
+            formatBookUpdateTime={formatBookUpdateTime}
+        />
     );
 };
-BookDetailModal.displayName = "BookDetailModal";
-// BookDetailModal 组件用于展示书籍的详细信息，包括封面、书名、作者、字数、更新时间等
 
-export default dynamic(() => Promise.resolve(BookDetailModal), {
-    ssr: true,
-    loading: () => (
-        // <div style={{ margin: "0 auto", width: "fit-content" }}>
-        //     <Spin />
-        // </div>
-        <Skeleton />
-    ),
-});
+BookDetailModal.displayName = "BookDetailModal";
+
+export default React.memo(BookDetailModal);

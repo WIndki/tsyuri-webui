@@ -1,16 +1,8 @@
-"use client";
+;
 import React, { memo } from "react";
-import { Card, Space, Tooltip, Col } from "antd";
-import {
-    FileTextOutlined,
-    ClockCircleOutlined,
-    UserOutlined,
-} from "@ant-design/icons";
-import type { Book } from "../../types/book";
-import styles from "./styles.module.css";
-import NovelCover from "./NovelCover";
-import NovelMeta from "./NovelMeta";
-import { formatWordCount, formatUpdateTime } from "./utils";
+import { useNovelCard } from "./useNovelCard";
+import NovelCardUI from "./NovelCardUI";
+import type { Book } from "@/types/book";
 
 /**
  * NovelCardProps 接口定义了 NovelCard 组件所需的属性
@@ -23,65 +15,38 @@ interface NovelCardProps {
     onCardClick?: (book: Book) => void;
 }
 
+/**
+ * NovelCard 组件 - 小说卡片主组件，组合了业务逻辑和UI渲染
+ * @param {NovelCardProps} props - 组件属性
+ * @returns {JSX.Element} 小说卡片组件
+ * @description
+ * 该组件将业务逻辑和UI渲染分离，提高了组件的内聚性和可维护性。
+ * 业务逻辑封装在 useNovelCard hook 中，UI 渲染由 NovelCardUI 组件负责。
+ */
 const NovelCard: React.FC<NovelCardProps> = ({ book, onCardClick }) => {
     if (process.env.NEXT_PUBLIC_DEBUG === "true") {
         console.log("NovelCard (with Col wrapper) render for:", book.id);
     }
-    // 处理卡片点击
-    const handleCardClick = () => {
-        if (onCardClick) {
-            onCardClick(book);
-        }
-    };
+
+    // 使用自定义hook获取业务逻辑
+    const {
+        formatBookWordCount,
+        formatBookUpdateTime,
+        getBookStatusText,
+        handleCardClick
+    } = useNovelCard();
 
     return (
-        <Col span={8} xs={24} sm={12} md={8} lg={6}>
-            <Card
-                hoverable
-                className={styles.novelCard}
-                onClick={handleCardClick}
-                cover={<NovelCover book={book} />}
-                actions={[
-                    <Tooltip
-                        key="wordCount"
-                        title={"字数：" + formatWordCount(book.wordCount)}
-                    >
-                        <Space>
-                            <FileTextOutlined />
-                            <span>{formatWordCount(book.wordCount)}</span>
-                        </Space>
-                    </Tooltip>,
-                    <Tooltip
-                        key="updateTime"
-                        title={"最后更新于：" + book.lastIndexUpdateTime}
-                    >
-                        <Space>
-                            <ClockCircleOutlined />
-                            <span>
-                                {formatUpdateTime(book.lastIndexUpdateTime)}
-                            </span>
-                        </Space>
-                    </Tooltip>,
-                    <Tooltip key="author" title={"作者：" + book.authorName}>
-                        <Space>
-                            <UserOutlined />
-                            <span
-                                style={{
-                                    wordBreak: "break-all",
-                                    wordWrap: "break-word",
-                                }}
-                            >
-                                {book.authorName}
-                            </span>
-                        </Space>
-                    </Tooltip>,
-                ]}
-            >
-                <NovelMeta book={book} />
-            </Card>
-        </Col>
+        <NovelCardUI
+            book={book}
+            onCardClick={() => handleCardClick(book, onCardClick)}
+            formatBookWordCount={formatBookWordCount}
+            formatBookUpdateTime={formatBookUpdateTime}
+            getBookStatusText={getBookStatusText}
+        />
     );
 };
+
 NovelCard.displayName = "NovelCard";
 
 export default memo(NovelCard);

@@ -1,45 +1,26 @@
+;
 import React from "react";
-import dynamic from "next/dynamic";
-import { Skeleton, Typography } from "antd";
-import { GithubFilled } from "@ant-design/icons";
+import { useAbout } from "./useAbout";
+import AboutUI from "./AboutUI";
 
-const { Paragraph, Link, Text } = Typography;
-
+/**
+ * About 组件 - 关于信息主组件，组合了业务逻辑和UI渲染
+ * @returns JSX.Element
+ * @description
+ * 该组件将业务逻辑和UI渲染分离，提高了组件的内聚性和可维护性。
+ * 业务逻辑封装在 useAbout hook 中，UI 渲染由 AboutUI 组件负责。
+ */
 const About: React.FC = () => {
+    if (process.env.NEXT_PUBLIC_DEBUG === "true") {
+        console.log("About render");
+    }
+
+    // 使用自定义hook获取业务逻辑
+    const { } = useAbout();
+
     return (
-        <Paragraph>
-            <Paragraph>
-                感谢
-                <Link href="https://index.tsyuri.com/" target="_blank">
-                    tsyuri小说索引
-                </Link>
-                提供的后端数据
-            </Paragraph>
-            <Paragraph>
-                感谢
-                <Link
-                    href="https://tieba.baidu.com/p/7552283328"
-                    target="_blank"
-                >
-                    变身百合小说贴吧
-                </Link>
-                提供的小说数据
-            </Paragraph>
-            <Paragraph>
-                <Text strong>该项目地址：</Text>
-                <Link
-                    href="https://github.com/WIndki/tsyuri-webui"
-                    target="_blank"
-                >
-                    <GithubFilled size={10} />{" "}
-                    https://github.com/WIndki/tsyuri-webui
-                </Link>
-            </Paragraph>
-        </Paragraph>
+        <AboutUI />
     );
 };
 
-export default dynamic(() => Promise.resolve(About), {
-    ssr: true,
-    loading: () => <Skeleton />,
-});
+export default React.memo(About);

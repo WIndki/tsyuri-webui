@@ -1,9 +1,7 @@
-"use client";
 import React from "react";
-import { Modal, Button, App } from "antd";
-import { ReloadOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
+import ErrorBoundaryUI from "./ErrorBoundaryUI";
 
-interface ErrorModalProps {
+interface ErrorBoundaryProps {
     error: string;
     onRetry: () => void;
     onClose: () => void;
@@ -12,103 +10,35 @@ interface ErrorModalProps {
 }
 
 /**
- * 错误模态框组件
- * @param props ErrorModalProps
+ * ErrorBoundary 组件 - 错误边界主组件，组合了业务逻辑和UI渲染
+ * @param props ErrorBoundaryProps
  * @returns JSX.Element
+ * @description
+ * 该组件将业务逻辑和UI渲染分离，提高了组件的内聚性和可维护性。
+ * UI 渲染由 ErrorBoundaryUI 组件负责。
  */
-const ErrorModal: React.FC<ErrorModalProps> = ({
+const ErrorBoundary: React.FC<ErrorBoundaryProps> = ({
     error,
     onRetry,
     onClose,
     loading = false,
     title = "加载失败"
 }) => {
-    const handleRetry = () => {
-        onRetry();
-        onClose(); // 重试后关闭模态框
-    };
+    if (process.env.NEXT_PUBLIC_DEBUG === "true") {
+        console.log("ErrorBoundary render");
+    }
 
     return (
-        <Modal
-            title={
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <ExclamationCircleOutlined style={{ color: '#ff4d4f' }} />
-                    {title}
-                </div>
-            }
-            open={true}
-            onCancel={onClose}
-            centered
-            maskClosable={true}
-            closable={true}
-            width={480}
-            footer={[
-                <Button key="close" onClick={onClose}>
-                    关闭
-                </Button>,
-                <Button
-                    key="retry"
-                    type="primary"
-                    icon={<ReloadOutlined />}
-                    onClick={handleRetry}
-                    loading={loading}
-                >
-                    重试
-                </Button>
-            ]}
-        >
-            <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>{error}</p>
-        </Modal>
+        <ErrorBoundaryUI
+            error={error}
+            onRetry={onRetry}
+            onClose={onClose}
+            loading={loading}
+            title={title}
+        />
     );
 };
 
-/**
- * 用于显示错误的Hook
- */
-export const useErrorModal = () => {
-    const { modal } = App.useApp();
+ErrorBoundary.displayName = "ErrorBoundary";
 
-    const showError = (
-        error: string,
-        onRetry: () => void,
-        options?: {
-            title?: string;
-            loading?: boolean;
-        }
-    ) => {
-        const modalInstance = modal.error({
-            title: (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {options?.title || "加载失败"}
-                </div>
-            ),
-            content: (
-                <div style={{ marginTop: '16px' }}>
-                    <p style={{ margin: 0, color: '#666' }}>{error}</p>
-                </div>
-            ),
-            centered: true,
-            maskClosable: true,
-            closable: true,
-            width: 480,
-            okText: "重试",
-            okButtonProps: {
-                icon: <ReloadOutlined />,
-                loading: options?.loading
-            },
-            cancelText: "关闭",
-            onOk: () => {
-                onRetry();
-                modalInstance.destroy();
-            }
-        });
-
-        return modalInstance;
-    };
-
-    return { showError };
-};
-
-ErrorModal.displayName = "ErrorModal";
-
-export default React.memo(ErrorModal);
+export default React.memo(ErrorBoundary);

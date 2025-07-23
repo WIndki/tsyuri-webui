@@ -1,42 +1,25 @@
-"use client";
-
-import React, { useEffect } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
-import { useAppDispatch } from "@/lib";
-import { initializeFromUrl, startPopstateListener } from "@/lib/features/router/routerSlice";
+import React from "react";
+import { useRouteInitializer } from "./useRouteInitializer";
+import RouteInitializerUI from "./RouteInitializerUI";
 
 /**
- * 路由初始化组件
- * 负责在客户端初始化路由状态并启动浏览器事件监听
+ * RouteInitializer 组件 - 路由初始化主组件，组合了业务逻辑和UI渲染
+ * @returns JSX.Element
+ * @description
+ * 该组件将业务逻辑和UI渲染分离，提高了组件的内聚性和可维护性。
+ * 业务逻辑封装在 useRouteInitializer hook 中，UI 渲染由 RouteInitializerUI 组件负责。
  */
 export const RouteInitializer: React.FC = () => {
+    // 使用自定义hook获取业务逻辑
+    const { processRouteInitialization } = useRouteInitializer();
 
-    const dispatch = useAppDispatch();
-    const pathname = usePathname();
-    const searchParams = useSearchParams();
-
-    useEffect(() => {
-
-        // 初始化路由状态
-        const params: Record<string, string> = {};
-        searchParams.forEach((value, key) => {
-            params[key] = value;
-        });
-        if (process.env.NEXT_PUBLIC_DEBUG === "true") {
-            console.log("🔗 RouteInitializer: 初始化路由状态", { pathname, params });
-        }
-        dispatch(initializeFromUrl({
-            pathname,
-            params
-        }));
-
-        // 启动 popstate 监听器
-        dispatch(startPopstateListener());
-
-    }, []);
-
-    // 这个组件不渲染任何 UI
-    return null;
+    return (
+        <RouteInitializerUI
+            processRouteInitialization={processRouteInitialization}
+        />
+    );
 };
+
+RouteInitializer.displayName = "RouteInitializer";
 
 export default RouteInitializer;

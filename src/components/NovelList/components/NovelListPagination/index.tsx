@@ -1,14 +1,10 @@
-"use client";
-import React, { useCallback, memo, useMemo, useEffect, useRef } from "react";
-import { Row, App, Pagination } from "antd";
-import BookCard from "@/components/NovelCard";
+;
+import React, { useCallback, } from "react";
+import { App } from "antd";
+import { useNovelListPagination } from "./useNovelListPagination";
+import NovelListPaginationUI from "./NovelListPaginationUI";
 import BookDetailModal from "@/components/BookDetailModal";
 import { Book } from "@/types/book";
-import LoadingIndicator from "../LoadingIndicator";
-import EmptyState from "../EmptyState";
-import { usePaginatedBooks, useAppDispatch, useAppSelector, useErrorHandler } from "@/lib";
-import { setSearchParams, selectSearchParams } from "@/lib";
-import styles from "../../styles.module.css";
 
 /**
  * NovelListPaginationProps 接口定义了分页小说列表组件所需的属性
@@ -20,10 +16,12 @@ interface NovelListPaginationProps {
 }
 
 /**
- * 分页小说列表组件
- * 用于展示小说列表，支持分页加载和小说详情查看
+ * NovelListPagination 组件 - 分页小说列表主组件，组合了业务逻辑和UI渲染
  * @param {NovelListPaginationProps} props - 分页小说列表组件属性
  * @returns {JSX.Element} 分页小说列表组件
+ * @description
+ * 该组件将业务逻辑和UI渲染分离，提高了组件的内聚性和可维护性。
+ * 业务逻辑封装在 useNovelListPagination hook 中，UI 渲染由 NovelListPaginationUI 组件负责。
  */
 const NovelListPagination: React.FC<NovelListPaginationProps> = ({ 
     emptyText = "暂无小说" 
@@ -32,34 +30,19 @@ const NovelListPagination: React.FC<NovelListPaginationProps> = ({
         console.log("NovelListPagination render");
     }
     
-    const dispatch = useAppDispatch();
-    const searchParams = useAppSelector(selectSearchParams);
     const { modal } = App.useApp();
-    const { books, isLoading, totalCount, currentPage, pageSize, changePage, error } = usePaginatedBooks();
-    const { showErrorModal } = useErrorHandler();
-    
-    // 使用 useRef 来跟踪当前请求的页码
-    const pendingPageRef = useRef<number | null>(null);
-
-    // 自动处理错误
-    useEffect(() => {
-        if (error) {
-            showErrorModal(error, () => changePage(currentPage), {
-                title: "加载书籍失败"
-            });
-        }
-    }, [error, showErrorModal, changePage, currentPage]);
-
-    // 监听页码变化，请求成功后滚动到顶部
-    useEffect(() => {
-        // 当currentPage变化且等于当前期望的页码时，表示请求成功
-        if (currentPage !== null && currentPage === pendingPageRef.current) {
-            // 滚动到顶部
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            // 清除pending状态
-            pendingPageRef.current = null;
-        }
-    }, [currentPage]);
+    const {
+        books,
+        isLoading,
+        totalCount,
+        currentPage,
+        pageSize,
+        changePage,
+        error,
+        handlePageChange,
+        handleRetryLoadData,
+        dispatch
+    } = useNovelListPagination();
 
     // 展示小说详情Modal
     const showBookDetailModal = useCallback(
@@ -103,96 +86,41 @@ const NovelListPagination: React.FC<NovelListPaginationProps> = ({
     );
 
     // 处理分页变化
-    const handlePageChange = useCallback(
+    const handlePaginationChange = useCallback(
         (page: number, newPageSize?: number) => {
-            if (isLoading) return;
-            
-            // 记录即将请求的页码
-            pendingPageRef.current = page;
-
-            // 如果pageSize变化，需要更新搜索参数
-            if (newPageSize && newPageSize !== pageSize) {
-                const newParams = { 
-                    curr: page,
-                    limit: newPageSize
-                };
-                dispatch(setSearchParams(newParams));
-            } else {
-                changePage(page);
-            }
+            handlePageChange(
+                page,
+                newPageSize,
+                isLoading,
+                pageSize,
+                changePage,
+                dispatch
+            );
         },
-        [isLoading, pageSize, changePage, dispatch, searchParams]
+        [handlePageChange, isLoading, pageSize, changePage, dispatch]
     );
 
     // 重试函数
-    const handleRetryLoadData = useCallback(() => {
-        // RTK Query 会自动重试，这里可以触发重新获取
-        changePage(currentPage);
-    }, [changePage, currentPage]);
-
-    // 使用 useMemo 缓存书籍列表，避免不必要的重新渲染
-    const bookList = useMemo(() => {
-        return books.map((book: Book, index: number) => (
-            <BookCard
-                key={book.id || index}
-                book={book}
-                onCardClick={handleBookCardClick}
-            />
-        ));
-    }, [books, handleBookCardClick]);
+    const handleRetry = useCallback(() => {
+        handleRetryLoadData(currentPage, changePage);
+    }, [handleRetryLoadData, currentPage, changePage]);
 
     return (
-        <>
-            {books.length === 0 && !isLoading && !error ? (
-                <EmptyState
-                    description={emptyText}
-                    showRetry={true}
-                    onRetry={handleRetryLoadData}
-                    loading={isLoading}
-                />
-            ) : (
-                <>
-                {isLoading && (
-                    <LoadingIndicator type="overlay" visible={true} />
-                )}
-                    <Row
-                        justify="center"
-                        align="top"
-                        gutter={[16, 16]}
-                        style={{
-                            margin: "0 auto",
-                            padding: "1rem 0.25rem",
-                            maxWidth: "100rem",
-                            minHeight: "60vh", // 确保有最小高度
-                        }}
-                    >
-                        {bookList}
-                    </Row>
-                    
-                    {/* 分页器 */}
-                    <div className={styles.paginationContainer}>
-                        <Pagination
-                            style={{ margin: "0 0" }}
-                            current={currentPage}
-                            total={totalCount}
-                            pageSize={pageSize}
-                            showSizeChanger={true}
-                            showQuickJumper={true}
-                            showTotal={(total, range) =>
-                                `第 ${range[0]}-${range[1]} 项，共 ${total} 项`
-                            }
-                            onChange={handlePageChange}
-                            disabled={isLoading}
-                            pageSizeOptions={['10', '20', '30', '50']}
-                            size="default"
-                        />
-                    </div>
-                </>
-            )}
-        </>
+        <NovelListPaginationUI
+            emptyText={emptyText}
+            books={books}
+            isLoading={isLoading}
+            totalCount={totalCount}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            error={error}
+            onBookClick={handleBookCardClick}
+            onPageChange={handlePaginationChange}
+            onRetryLoadData={handleRetry}
+        />
     );
 };
 
 NovelListPagination.displayName = "NovelListPagination";
 
-export default memo(NovelListPagination);
+export default React.memo(NovelListPagination);

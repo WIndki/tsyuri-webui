@@ -1,60 +1,35 @@
-"use client";
-import { Input, Button, Form } from "antd";
+;
 import React from "react";
-import { SearchOutlined } from "@ant-design/icons";
+import { useSearchInput } from "./useSearchInput";
+import SearchInputUI from "./SearchInputUI";
 
-/**
- * SearchInputProps 接口定义了搜索输入框组件所需的属性
- * @interface SearchInputProps
- * @property {() => void} [onSubmit] - 可选的提交回调函数，在搜索按钮点击时触发
- * @property {boolean} [isLoading] - 可选的加载状态，用于禁用输入框和显示按钮加载状态
- */
 interface SearchInputProps {
     onSubmit?: () => void;
     isLoading?: boolean;
 }
 
-
+/**
+ * SearchInput 组件 - 搜索输入框主组件，组合了业务逻辑和UI渲染
+ * @param props SearchInputProps
+ * @returns JSX.Element
+ * @description
+ * 该组件将业务逻辑和UI渲染分离，提高了组件的内聚性和可维护性。
+ * 业务逻辑封装在 useSearchInput hook 中，UI 渲染由 SearchInputUI 组件负责。
+ */
 const SearchInput: React.FC<SearchInputProps> = ({ onSubmit, isLoading = false }) => {
     if (process.env.NEXT_PUBLIC_DEBUG === "true") {
         console.log("SearchInput render");
     }
 
-    
+    // 使用自定义hook获取业务逻辑
+    const { handleSearch } = useSearchInput();
+
     return (
-        <Form.Item name="keyword" noStyle>
-            <Input.Search
-                placeholder="请输入搜索关键词..."
-                allowClear
-                disabled={isLoading}
-                enterButton={
-                    <Button
-                        type="primary"
-                        size="large"
-                        loading={isLoading}
-                        icon={<SearchOutlined />}
-                        htmlType="submit"
-                    >
-                        搜索
-                    </Button>
-                }
-                size="large"
-                style={{
-                    width: "100%",
-                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
-                }}
-                onSearch={() => {
-                    // 取消输入框的焦点
-                    if (document.activeElement instanceof HTMLElement) {
-                        document.activeElement.blur();
-                    }
-                    // 执行原有的onSubmit回调
-                    if (onSubmit) {
-                        onSubmit();
-                    }
-                }}
-            />
-        </Form.Item>
+        <SearchInputUI
+            onSubmit={onSubmit}
+            isLoading={isLoading}
+            handleSearch={handleSearch}
+        />
     );
 };
 

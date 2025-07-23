@@ -1,57 +1,37 @@
 "use client";
-import { Spin } from "antd";
-import React, { Suspense } from "react";
-import Content from "../Content";
-import SearchForm from "../SearchForm";
-import NovelList from "../NovelList";
-import Toolbar from "../Toolbar";
-import RouteInitializer from "../RouteInitializer";
-import { selectIsInitialized, useAppSelector } from "@/lib";
 
-// 创建内部组件来使用 useSearchParams
-const MainContent = () => {
-    const initial = useAppSelector(selectIsInitialized);
-    if (process.env.NEXT_PUBLIC_DEBUG === "true") {
-        console.log("MainContent render");
-    }
+import React from "react";
+import { useMain } from "./useMain";
+import MainUI from "./MainUI";
 
-    return (
-        <>
-            {/* 路由初始化组件，必须在 Suspense 内 */}
-            <RouteInitializer />
-            {initial && (
-                <Content>
-                    <NovelList />
-                </Content>
-            )}
-
-        </>
-    );
-};
-
-// 主组件，用Suspense包裹内部组件
-const Main = () => {
+/**
+ * Main 组件 - 主页面组件，组合了业务逻辑和UI渲染
+ * @returns JSX.Element
+ * @description
+ * 该组件将业务逻辑和UI渲染分离，提高了组件的内聚性和可维护性。
+ * 业务逻辑封装在 useMain hook 中，UI 渲染由 MainUI 组件负责。
+ */
+const Main: React.FC = () => {
     if (process.env.NEXT_PUBLIC_DEBUG === "true") {
         console.log("Main render");
     }
 
+    // 使用自定义hook获取业务逻辑
+    const { 
+        initial,
+        processMainContent,
+        isLoading
+    } = useMain();
+
     return (
-        <>
-            <Suspense
-                fallback={
-                    <div style={{ margin: "0 auto" }}>
-                        <Spin size="large" />
-                    </div>
-                }
-            >
-                <MainContent />
-            </Suspense>
-            <SearchForm />
-            <Toolbar />
-        </>
+        <MainUI
+            initial={initial}
+            processMainContent={processMainContent}
+            isLoading={isLoading}
+        />
     );
 };
 
-Main.displayName = "Main"; // 设置组件名称，便于调试
+Main.displayName = "Main";
 
 export default React.memo(Main);
