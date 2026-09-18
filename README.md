@@ -20,12 +20,16 @@ npm run verify       # typecheck + lint + build
 npm run build && npm start
 npm run e2e          # 23 checks over HTTP against a running server
 npm run e2e:browser  # 13 checks in Chrome via Playwright
+npm run check:deprecations  # walks the controls, reports console warnings (needs dev server)
 npm run screenshots  # writes .screenshots/ for visual review
 ```
 
 `npm run e2e` and `npm run e2e:browser` read the live upstream index, so they need a built server
 running and network access. Both take the base URL as an optional argument, defaulting to
 `http://127.0.0.1:4700`.
+
+`npm run check:deprecations` must run against `npm run dev`, because React strips the warnings it
+looks for from a production build. It is how the antd v6 `Space` prop rename was found.
 
 If the machine reaches the network through a proxy, set `HTTPS_PROXY` (and `NO_PROXY` for the hosts
 that should bypass it). Node's `fetch` does not read those variables on its own, so
