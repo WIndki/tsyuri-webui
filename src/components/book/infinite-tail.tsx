@@ -54,7 +54,7 @@ export function InfiniteTail({ hasMore, isLoading, onLoadMore }: InfiniteTailPro
 
     return (
         <div ref={sentinelRef} style={{ textAlign: "center", padding: "24px 0" }}>
-            <Space direction="vertical" size={8}>
+            <Space orientation="vertical" size={8}>
                 {isLoading ? <Spin size="small" /> : null}
                 <Button type="link" loading={isLoading} onClick={onLoadMore}>
                     {isLoading ? "加载中…" : "加载下一页"}

@@ -57,7 +57,7 @@ function clearIfAny(value: string): string | undefined {
  */
 export function FilterControls({ values, onChange }: FilterControlsProps) {
     return (
-        <Space direction="vertical" size={12} style={{ width: "100%" }}>
+        <Space orientation="vertical" size={12} style={{ width: "100%" }}>
             <Space size={8} wrap>
                 <Text type="secondary">标签</Text>
                 <Select
