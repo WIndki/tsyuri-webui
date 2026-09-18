@@ -178,19 +178,3 @@ export const UPDATE_PERIOD_VALUES = valueSet(UPDATE_PERIOD_OPTIONS);
 export const WORD_COUNT_VALUES = valueSet(WORD_COUNT_STEPS);
 export const TAG_VALUES = valueSet(TAG_OPTIONS);
 export const SOURCE_VALUES = valueSet(SOURCE_OPTIONS);
-
-/** Human-readable label for a raw record-level purity grade. */
-export const PURITY_GRADE_LABELS: Record<string, string> = {
-    "A+": "A+",
-    A: "A",
-    "A-": "A-",
-    "B+": "B+",
-    B: "B",
-    "-": "B-",
-    "--": "C",
-    "---": "C-",
-};
-
-export const BOOK_STATUS_LABELS: Record<string, string> = Object.fromEntries(
-    BOOK_STATUS_OPTIONS.map(({ value, label }) => [value, label]),
-);

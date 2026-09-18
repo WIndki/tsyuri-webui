@@ -85,14 +85,6 @@ export interface SearchQuery {
     wordCountMax?: string;
 }
 
-export const EMPTY_QUERY: SearchQuery = {
-    keyword: "",
-    page: 1,
-    pageSize: DEFAULT_PAGE_SIZE,
-    sort: DEFAULT_SORT,
-    display: DEFAULT_DISPLAY_MODE,
-};
-
 /** Shape of the untrusted input we are willing to parse. */
 export type RawSearchParams = Record<string, string | string[] | undefined>;
 

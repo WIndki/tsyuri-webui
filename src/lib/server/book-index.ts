@@ -19,7 +19,7 @@ import "server-only";
  * lets the first page of results ship as HTML.
  */
 
-import { revalidateTag, unstable_cache } from "next/cache";
+import { unstable_cache } from "next/cache";
 
 import type { BookPage } from "@/lib/api/book";
 import { BookIndexError } from "@/lib/api/errors";
@@ -166,15 +166,4 @@ export async function getBookPage(query: SearchQuery): Promise<BookPage> {
     );
 
     return cached();
-}
-
-/**
- * Invalidates every cached page.
- *
- * Exposed through a route handler so the index can be refreshed on demand after upstream
- * backfills data, without waiting out the revalidate window.
- */
-export function revalidateBookIndex(): void {
-    // Next.js 16 requires an explicit cache profile when expiring a tag.
-    revalidateTag(BOOK_INDEX_CACHE_TAG, "max");
 }

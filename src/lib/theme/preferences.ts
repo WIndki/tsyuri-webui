@@ -43,16 +43,7 @@ export function isThemeMode(value: unknown): value is ThemeMode {
     return value === "light" || value === "dark";
 }
 
-/** Reads a value from `localStorage`, tolerating disabled storage. */
-function readStored(key: string): string | null {
-    try {
-        return localStorage.getItem(key);
-    } catch {
-        // Private browsing and sandboxed iframes can throw on access.
-        return null;
-    }
-}
-
+/** Writes a value to `localStorage`, tolerating disabled storage. */
 function writeStored(key: string, value: string): void {
     try {
         localStorage.setItem(key, value);
@@ -82,10 +73,4 @@ export function applyTheme(mode: ThemeMode): void {
 
     writeStored(THEME_STORAGE_KEY, mode);
     window.dispatchEvent(new Event(PREFERENCE_CHANGE_EVENT));
-}
-
-/** Persisted theme, or `null` when the visitor has never chosen one. */
-export function storedTheme(): ThemeMode | null {
-    const value = readStored(THEME_STORAGE_KEY);
-    return isThemeMode(value) ? value : null;
 }

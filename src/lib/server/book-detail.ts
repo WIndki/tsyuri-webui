@@ -103,8 +103,8 @@ async function fetchBookByIdUncached(
 /**
  * Cached single-book read.
  *
- * A book's metadata changes on the order of hours, so the detail page shares the index's longer
- * revalidation window and its cache tag, which means one `revalidateBookIndex()` refreshes both.
+ * A book's metadata changes on the order of hours, so this shares the index's longer revalidation
+ * window and its cache tag.
  */
 export async function getBookById(id: string, title: string): Promise<Book | null> {
     const cached = unstable_cache(
