@@ -1,8 +1,34 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-    /* config options here */
-    // output: "export",
+    reactStrictMode: true,
+
+    // antd ships large ESM trees; transpiling them keeps Turbopack's module graph
+    // deterministic instead of relying on the bundler's CJS interop heuristics.
+    transpilePackages: ["antd", "@ant-design/icons", "@ant-design/cssinjs"],
+
+    // Upstream cover art lives on third-party CDNs. Declaring the allowed hosts
+    // lets us use next/image (automatic AVIF/WebP + sizing) instead of raw <img>.
+    images: {
+        formats: ["image/avif", "image/webp"],
+        /*
+         * Only the hosts actually observed serving cover URLs, kept identical to
+         * `OBSERVED_COVER_HOSTS` in `src/lib/api/cover.ts`. `next/image` refuses any host that is
+         * not listed, so a newly appearing host fails loudly rather than silently.
+         *
+         * Both protocols are allowed because the payload mixes them: `rss.sfacg.com` returns
+         * `https://` while `e1.kuangxiangit.com` returns `http://`. Restricting to `https` made
+         * every cover from the http-only hosts fail the optimiser with a 400.
+         */
+        remotePatterns: [
+            { protocol: "https", hostname: "index.tsyuri.com" },
+            { protocol: "https", hostname: "**.kuangxiangit.com" },
+            { protocol: "http", hostname: "**.kuangxiangit.com" },
+            { protocol: "https", hostname: "**.sfacg.com" },
+            { protocol: "https", hostname: "**.fqnovelpic.com" },
+            { protocol: "https", hostname: "img.ciyuanji.com" },
+        ],
+    },
 };
 
 export default nextConfig;

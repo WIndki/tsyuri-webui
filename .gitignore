@@ -45,3 +45,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# intermediate results produced while working, never committed
+/.scratch/
+
+# interface review screenshots
+/.screenshots/

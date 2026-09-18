@@ -1,0 +1,92 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-top: 8px;
+}
+
+.layout {
+    display: grid;
+    gap: 28px;
+    /* Cover beside the facts on wide screens; stacked on narrow ones. */
+    grid-template-columns: 260px minmax(0, 1fr);
+    align-items: start;
+}
+
+@media (max-width: 768px) {
+    .layout {
+        gap: 18px;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .coverColumn {
+        max-width: 200px;
+        margin: 0 auto;
+    }
+}
+
+.coverColumn {
+    overflow: hidden;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-raised);
+}
+
+.infoColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+}
+
+.title {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+}
+
+@media (max-width: 768px) {
+    .title {
+        font-size: 21px;
+    }
+}
+
+.author {
+    font-size: 15px;
+    color: var(--foreground-muted);
+}
+
+.descriptionSection {
+    padding: 20px 22px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.sectionHeading {
+    margin-bottom: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--foreground);
+}
+
+.description {
+    font-size: 14.5px;
+    line-height: 1.9;
+    color: var(--foreground);
+    /* Upstream descriptions are hard-wrapped with CRLF; preserve their paragraphing. */
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+}
+
+.empty {
+    font-size: 14px;
+    color: var(--foreground-subtle);
+}
+
+.footer {
+    padding-top: 4px;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--foreground-subtle);
+}

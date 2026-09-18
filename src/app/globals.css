@@ -1,39 +1,114 @@
+/*
+ * Design tokens.
+ *
+ * Two layers, and the split matters:
+ *
+ * 1. **App tokens** (`--background`, `--surface`, `--foreground`, …) are the vocabulary used by
+ *    every CSS module in this project. They describe intent, so a component asks for "a raised
+ *    surface" rather than for a specific grey.
+ * 2. **antd tokens** (`--ant-*`) are emitted by antd itself because the theme sets `cssVar`. They
+ *    are read here only to keep the two palettes in agreement — the accent reads antd's
+ *    `colorPrimary` with a fallback, so changing the brand colour in `theme.ts` carries through.
+ *
+ * Light is the default so that the server-rendered markup, which cannot know the visitor's
+ * preference, is already coherent; the inline bootstrap script rewrites `data-theme` before the
+ * first paint.
+ */
+
 :root {
-    --background: #ffffff;
-    --foreground: #171717;
-    --card-bg: #f5f5f5;
-    --border-color: #e5e5e5;
-    --shadow: rgba(0, 0, 0, 0.1);
+    /* Surfaces, from the page up to raised cards. */
+    --background: #f7f8fa;
+    --surface: #ffffff;
+    --surface-hover: #f2f4f7;
+
+    /* Text, in three weights of emphasis. */
+    --foreground: #16181d;
+    --foreground-muted: #626873;
+    --foreground-subtle: #8b919c;
+
+    --border: #e6e8ec;
+    --border-strong: #d4d8e0;
+
+    /* One accent, read from antd so the two palettes cannot disagree. */
+    --accent: var(--ant-color-primary, #1677ff);
+    --accent-soft: rgb(22 119 255 / 8%);
+
+    --shadow-card: 0 1px 2px rgb(16 24 40 / 4%), 0 1px 3px rgb(16 24 40 / 6%);
+    --shadow-raised: 0 4px 12px rgb(16 24 40 / 8%);
+
+    --radius: 12px;
+    --radius-small: 8px;
+
+    --shell-max-width: 88rem;
+    --shell-gutter: 20px;
+
+    color-scheme: light;
 }
 
 [data-theme="dark"] {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --card-bg: #1f1f1f;
-    --border-color: #333333;
-    --shadow: rgba(255, 255, 255, 0.1);
+    --background: #0d0e11;
+    --surface: #16181d;
+    --surface-hover: #1e2127;
+
+    --foreground: #ecedf0;
+    --foreground-muted: #9aa1ad;
+    --foreground-subtle: #6c7480;
+
+    --border: #262a31;
+    --border-strong: #343a43;
+
+    --accent-soft: rgb(60 154 232 / 14%);
+
+    /* Shadows do not read on a dark surface; separation comes from the border instead. */
+    --shadow-card: none;
+    --shadow-raised: 0 4px 12px rgb(0 0 0 / 40%);
+
+    color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
 }
 
 html,
 body {
-    width: 100% !important;
     max-width: 100vw;
     overflow-x: hidden;
     -webkit-tap-highlight-color: transparent;
 }
 
-body {
-    color: var(--foreground);
-    background: var(--background);
-    font-family: Arial, Helvetica, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+html {
+    /* Prevents the layout shifting when a page grows tall enough to need a scrollbar. */
+    scrollbar-gutter: stable;
+    scroll-behavior: smooth;
 }
 
-* {
-    box-sizing: border-box;
-    padding: 0;
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+body {
     margin: 0;
+    color: var(--foreground);
+    background: var(--background);
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
+        "Microsoft YaHei", system-ui, sans-serif;
+    line-height: 1.65;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 a {
@@ -41,6 +116,37 @@ a {
     text-decoration: none;
 }
 
-[data-theme="dark"] {
-    color-scheme: dark;
+h1,
+h2,
+h3,
+h4,
+p {
+    margin: 0;
+}
+
+/* One visible focus treatment for the whole app. */
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Native scrollbars, themed to match. antd does not style the document scroller. */
+@supports (scrollbar-width: thin) {
+    html {
+        scrollbar-width: thin;
+        scrollbar-color: var(--border-strong) transparent;
+    }
 }

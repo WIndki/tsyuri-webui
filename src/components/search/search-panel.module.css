@@ -1,0 +1,25 @@
+.panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+}
+
+.label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--foreground);
+}
+
+.body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.clear {
+    padding-inline: 0;
+}

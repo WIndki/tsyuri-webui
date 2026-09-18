@@ -1,0 +1,15 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.error {
+    padding: 28px 20px;
+    font-size: 14px;
+    color: var(--foreground-muted);
+    text-align: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}

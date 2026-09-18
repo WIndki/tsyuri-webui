@@ -1,0 +1,14 @@
+.frame {
+    position: relative;
+    width: 100%;
+    /* 3:4 is the dominant cover ratio across all five sources. Declaring it here rather than
+       relying on the image's intrinsic size is what stops the grid reflowing as covers load. */
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--background-elevated);
+}
+
+.image {
+    object-fit: cover;
+}

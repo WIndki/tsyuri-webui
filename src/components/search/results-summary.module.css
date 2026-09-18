@@ -1,0 +1,19 @@
+.summary {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.heading {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.count {
+    margin: 0;
+    font-size: 14px;
+    color: var(--foreground-muted);
+}
