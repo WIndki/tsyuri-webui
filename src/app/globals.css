@@ -29,20 +29,27 @@
     --border: #e6e8ec;
     --border-strong: #d4d8e0;
 
-    /* One accent, read from antd so the two palettes cannot disagree. */
-    --accent: var(--ant-color-primary, #1677ff);
-    --accent-soft: rgb(22 119 255 / 8%);
+    /*
+     * The brand colour, and everything tinted from it.
+     *
+     * The value is a literal rather than `var(--ant-color-primary)`, which was the original intent. antd declares its
+     * variables on the element carrying its own `css-var-*` class, not on the document root, and a custom property
+     * resolves the `var()` references in its own value where it is *declared*: a descendant inheriting `--accent` does
+     * not re-resolve it against its own `--ant-color-primary`. Reading antd here therefore always produced the fallback,
+     * so dark mode drew the light-mode blue. Each mode states its own value, matching `BRAND` in
+     * `lib/theme/preferences.ts`, which is what the antd theme is configured from.
+     */
+    --accent: #1677ff;
+    --accent-soft: color-mix(in srgb, var(--accent) 8%, transparent);
 
-    /* The ambient wash behind the whole page. Two tints of the accent, at an opacity that only resolves as colour. */
-    --ambient-a: rgb(22 119 255 / 7%);
+    /* The ambient wash behind the whole page. Two tints at an opacity that only resolves as colour. */
+    --ambient-a: color-mix(in srgb, var(--accent) 7%, transparent);
     --ambient-b: rgb(114 46 209 / 5%);
 
     --shadow-card: 0 1px 2px rgb(16 24 40 / 4%), 0 1px 3px rgb(16 24 40 / 6%);
     --shadow-raised: 0 4px 12px rgb(16 24 40 / 8%);
-    --shadow-lift: 0 12px 28px rgb(16 24 40 / 14%);
 
     --radius: 12px;
-    --radius-small: 8px;
 
     --shell-max-width: 88rem;
     --shell-gutter: 20px;
@@ -62,16 +69,17 @@
     --border: #262a31;
     --border-strong: #343a43;
 
-    --accent-soft: rgb(60 154 232 / 14%);
+    /* Lighter and less saturated than the light-mode blue, which reads as muddy on a near-black page. */
+    --accent: #3c9ae8;
+    --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
 
     /* Dimmer than in light mode: on a near-black page the same opacity reads as a coloured fog. */
-    --ambient-a: rgb(60 154 232 / 9%);
+    --ambient-a: color-mix(in srgb, var(--accent) 9%, transparent);
     --ambient-b: rgb(140 96 240 / 7%);
 
     /* Shadows do not read on a dark surface; separation comes from the border instead. */
     --shadow-card: none;
     --shadow-raised: 0 4px 12px rgb(0 0 0 / 40%);
-    --shadow-lift: 0 12px 28px rgb(0 0 0 / 55%);
 
     color-scheme: dark;
 }
@@ -290,18 +298,6 @@ p {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
     border-radius: 6px;
-}
-
-.visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-    border: 0;
 }
 
 /* Native scrollbars, themed to match. antd does not style the document scroller. */

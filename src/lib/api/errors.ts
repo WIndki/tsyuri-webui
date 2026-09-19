@@ -7,7 +7,7 @@
  * *kind* plus the upstream message, and presentation decides the copy.
  */
 
-export type BookIndexErrorKind =
+type BookIndexErrorKind =
     /** DNS failure, connection refused, offline. */
     | "network"
     /** Our own timeout budget elapsed. */

@@ -563,12 +563,18 @@ await withPage(async (page) => {
     }
     await page.waitForTimeout(6000);
 
+    /*
+     * Scrolling appends pages, and each appended page prepares its own two. The bound is per batch, so what matters is
+     * that the count grows with the number of batches and not with the number of cards: without a bound this would be
+     * one record per card, so the count would approach the card count.
+     */
+    const afterScroll = prefetched.size;
     const cards = await page.locator("article").count();
     report(
         "scrolling does not prefetch every card it loads",
-        prefetched.size <= 6
+        afterScroll < cards / 2
             ? null
-            : `${prefetched.size} records were prefetched for ${cards} cards`,
+            : `${afterScroll} records were prefetched for ${cards} cards`,
     );
 });
 

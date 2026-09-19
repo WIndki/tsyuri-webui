@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { ResultsIsland } from "@/components/book/results-island";
+import { WaitCompletion } from "@/components/book/wait-completion";
 import { DisplayModePreference } from "@/components/search/display-mode-preference";
 import { EmptyResults } from "@/components/search/empty-results";
 import { ResultsSummary } from "@/components/search/results-summary";
@@ -80,6 +81,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
              * Rendered first because it changes the URL the rest of the page reads.
              */}
             <DisplayModePreference />
+
+            {/*
+             * Ends the wait when the answer is anything other than a list of books, which is why it is mounted
+             * unconditionally rather than left to the island.
+             */}
+            <WaitCompletion query={query} />
 
             <ResultsSummary total={page.total} page={page.page} query={query} />
 

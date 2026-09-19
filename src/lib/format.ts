@@ -96,11 +96,18 @@ export function formatWordCount(raw: string | number | null | undefined): string
     return `${count}字`;
 }
 
-/** Truncates on a code-unit boundary and appends an ellipsis. */
+/**
+ * Truncates to a number of characters, counting code points.
+ *
+ * Counting code points rather than UTF-16 code units is what keeps a surrogate pair intact. Slicing by code unit can cut
+ * an emoji in half and leave a lone surrogate, and a lone surrogate is not a character: `encodeURIComponent` throws on
+ * one, so a truncated value that reaches a URL can take down the route that builds it.
+ */
 export function truncate(value: string, max: number): string {
     const trimmed = value.trim();
-    if (trimmed.length <= max) return trimmed;
-    return `${trimmed.slice(0, max).trimEnd()}…`;
+    const characters = Array.from(trimmed);
+    if (characters.length <= max) return trimmed;
+    return `${characters.slice(0, max).join("").trimEnd()}…`;
 }
 
 /**

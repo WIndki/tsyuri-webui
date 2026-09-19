@@ -12,9 +12,8 @@ const nextConfig: NextConfig = {
     images: {
         formats: ["image/avif", "image/webp"],
         /*
-         * Only the hosts actually observed serving cover URLs, kept identical to
-         * `OBSERVED_COVER_HOSTS` in `src/lib/api/cover.ts`. `next/image` refuses any host that is
-         * not listed, so a newly appearing host fails loudly rather than silently.
+         * The hosts observed serving cover URLs. This list is the authority: `next/image` refuses any host that is not
+         * here, so a newly appearing host fails loudly rather than silently.
          *
          * Both protocols are allowed because the payload mixes them: `rss.sfacg.com` returns
          * `https://` while `e1.kuangxiangit.com` returns `http://`. Restricting to `https` made

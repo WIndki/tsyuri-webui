@@ -91,10 +91,6 @@
     }
 }
 
-.coverLink {
-    display: block;
-}
-
 .body {
     display: flex;
     flex: 1;
@@ -131,16 +127,17 @@
     min-height: 2.9em;
 }
 
-.titleLink {
+.link {
     transition: color 0.16s ease;
 }
 
-.card:hover .titleLink {
+/* The link carries the focus ring, promoted to the whole card via `:has`, so the ring outlines the card rather than
+   wrapping the title text. */
+.card:hover .link {
     color: var(--accent);
 }
 
-/* The title link carries the focus ring, promoted to the whole card via `:has`. */
-.title:has(.titleLink:focus-visible)::after {
+.title:has(.link:focus-visible)::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -149,7 +146,7 @@
     border-radius: var(--radius);
 }
 
-.titleLink:focus-visible {
+.link:focus-visible {
     outline: none;
 }
 

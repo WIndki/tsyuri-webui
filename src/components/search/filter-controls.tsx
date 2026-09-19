@@ -75,6 +75,7 @@ export function FilterControls({ values, onChange }: FilterControlsProps) {
                     value={values.bookStatus ?? ANY}
                     onChange={(value) => onChange({ bookStatus: clearIfAny(String(value)) })}
                     options={withAny(BOOK_STATUS_OPTIONS)}
+                    aria-label="按状态筛选"
                 />
             </Space>
 

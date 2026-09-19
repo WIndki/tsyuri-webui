@@ -34,7 +34,7 @@
 type PurityGrade = string;
 
 /** `bookStatus` is a stringified boolean. Only `"0"` and `"1"` were ever observed. */
-export type BookStatus = "0" | "1";
+type BookStatus = "0" | "1";
 
 /** A book record as returned by `GET /book/searchByPage`. */
 export interface UpstreamBook {
@@ -49,7 +49,7 @@ export interface UpstreamBook {
     picUrl: string;
     bookName: string;
     authorName: string;
-    /** `"YYYY-MM-DD HH:mm:ss"`, no timezone. See `parseUpstreamDate`. */
+    /** `"YYYY-MM-DD HH:mm:ss"`, no timezone. See `parseUpstreamEpochMs`. */
     lastIndexUpdateTime: string;
     /** `"SF轻小说" | "刺猬猫" | "番茄" | "起点" | "次元姬"` in practice. */
     crawlSourceName: string;

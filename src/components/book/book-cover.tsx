@@ -1,7 +1,6 @@
-import Image from "next/image";
-
 import { COVER_PLACEHOLDER } from "@/lib/api/cover";
 
+import { CoverImage } from "./cover-image";
 import styles from "./book-cover.module.css";
 
 interface BookCoverProps {
@@ -15,39 +14,26 @@ interface BookCoverProps {
 /**
  * A fixed-ratio cover image.
  *
- * A Server Component: `next/image` resolves and optimises on the server, and the placeholder
- * fallback is decided here rather than in the browser.
+ * A Server Component, so the frame and the aspect ratio are part of the server-rendered HTML and the grid does not
+ * reflow as covers arrive.
  *
- * Upstream returns two cover shapes (an index-hosted `/localPic/...` mirror and absolute
- * third-party CDN URLs); `resolveCoverUrl` has already made both absolute, and both hosts are
- * declared in `images.remotePatterns`.
+ * Upstream returns two cover shapes (an index-hosted `/localPic/...` mirror and absolute third-party CDN URLs);
+ * `resolveCoverUrl` has already made both absolute, and both hosts are declared in `images.remotePatterns`.
  *
- * Two upstream quirks are handled by construction:
+ * Two upstream quirks are handled:
  *
- * - A missing image under `/localPic/` is answered with **HTTP 200 and a zero-byte body**, so
- *   a status check cannot detect it. The CSS background behind the image shows through, and
- *   `onError` on the client swaps in the placeholder.
- * - No width/height are published, so the aspect ratio comes from CSS (`aspect-ratio: 3/4`)
- *   rather than from the payload, which is what keeps the grid from reflowing as covers load.
+ * - A missing image under `/localPic/` is answered with **HTTP 200 and a zero-byte body**, so no status check can detect
+ *   it. `CoverImage` swaps in the placeholder when the browser fails to decode one.
+ * - No width or height are published, so the aspect ratio comes from CSS (`aspect-ratio: 3/4`).
  */
 export function BookCover({ src, alt, sizes, priority = false }: BookCoverProps) {
-    const isPlaceholder = src === COVER_PLACEHOLDER;
-
     return (
         <div className={styles.frame}>
-            <Image
-                src={src}
+            <CoverImage
+                src={src === COVER_PLACEHOLDER ? COVER_PLACEHOLDER : src}
                 alt={alt}
-                fill
                 sizes={sizes}
-                priority={priority}
-                // Covers are content images but not the LCP element; loading the first row
-                // eagerly and the rest lazily keeps the initial payload small.
-                loading={priority ? "eager" : "lazy"}
-                className={styles.image}
-                // Third-party hosts occasionally 404 individual covers; the placeholder is
-                // the correct fallback rather than a broken-image icon.
-                unoptimized={isPlaceholder}
+                eager={priority}
             />
         </div>
     );

@@ -3,6 +3,7 @@ import "server-only";
 import { notFound } from "next/navigation";
 
 import type { Book } from "@/lib/api/book";
+import { truncate } from "@/lib/format";
 import { getBookById } from "@/lib/server/book-detail";
 
 /** Ids are numeric strings upstream; anything else cannot resolve. */
@@ -21,7 +22,8 @@ const MAX_TITLE_LENGTH = 200;
  * silently showing a different book.
  */
 export async function loadBookDetail(id: string, rawTitle: string | undefined): Promise<Book> {
-    const title = (rawTitle ?? "").trim().slice(0, MAX_TITLE_LENGTH);
+    // Truncated by code point, for the same reason the keyword is: the result is used in a URL.
+    const title = truncate(rawTitle ?? "", MAX_TITLE_LENGTH);
 
     if (!ID_PATTERN.test(id) || !title) notFound();
 

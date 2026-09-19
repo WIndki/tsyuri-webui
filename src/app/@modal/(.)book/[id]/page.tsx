@@ -1,4 +1,5 @@
 import { BookDetailView } from "@/components/book-detail/book-detail-view";
+import { singleParam, type RawSearchParams } from "@/lib/search/query";
 import { loadBookDetail } from "@/lib/server/book-detail-request";
 import { requestTimestamp } from "@/lib/server/request-timestamp";
 
@@ -15,23 +16,14 @@ import { requestTimestamp } from "@/lib/server/request-timestamp";
  */
 interface InterceptedBookProps {
     params: Promise<{ id: string }>;
-    searchParams: Promise<Record<string, string | string[] | undefined>>;
-}
-
-function readParam(
-    source: Record<string, string | string[] | undefined>,
-    key: string,
-): string | undefined {
-    const value = source[key];
-    if (Array.isArray(value)) return value.at(-1);
-    return value;
+    searchParams: Promise<RawSearchParams>;
 }
 
 export default async function InterceptedBook({ params, searchParams }: InterceptedBookProps) {
     const { id } = await params;
     const raw = await searchParams;
 
-    const book = await loadBookDetail(id, readParam(raw, "title"));
+    const book = await loadBookDetail(id, singleParam(raw, "title"));
     const now = requestTimestamp();
 
     return <BookDetailView book={book} now={now} />;

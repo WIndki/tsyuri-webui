@@ -66,8 +66,6 @@ export const PURITY_OPTIONS = [
     { value: "5", label: "B 及以上", description: "含 B，约 9,300 本（最宽松）" },
 ] as const;
 
-export type PurityValue = (typeof PURITY_OPTIONS)[number]["value"];
-
 /**
  * `updatePeriod` — a lookback window in days.
  *
@@ -85,8 +83,6 @@ export const UPDATE_PERIOD_OPTIONS = [
     { value: "365", label: "一年内" },
 ] as const;
 
-export type UpdatePeriodValue = (typeof UPDATE_PERIOD_OPTIONS)[number]["value"];
-
 /**
  * `wordCountMin` / `wordCountMax` thresholds.
  *
@@ -103,8 +99,6 @@ export const WORD_COUNT_STEPS = [
     { value: "1000000", label: "100 万" },
     { value: "2000000", label: "200 万" },
 ] as const;
-
-export type WordCountStep = (typeof WORD_COUNT_STEPS)[number]["value"];
 
 /**
  * `tag` values offered as quick filters.
@@ -147,13 +141,15 @@ export const SOURCE_OPTIONS = [
 ] as const;
 
 /**
- * Page sizes offered in the UI.
+ * Records per page.
  *
- * Capped well below the upstream maximum on purpose. Measured cost: ~0.7 s fixed per
- * request plus ~16.5 KB raw / ~5.5 KB gzipped per record, and latency becomes erratic above
- * 500. `limit=1000` ranged from 0.93 s to 30.3 s for identical requests.
+ * Capped well below the upstream maximum on purpose. Measured cost: ~0.7 s fixed per request plus ~16.5 KB raw /
+ * ~5.5 KB gzipped per record, and latency becomes erratic above 500. `limit=1000` ranged from 0.93 s to 30.3 s for
+ * identical requests.
+ *
+ * Not offered as a choice in the interface, so this is the only value the application sends. `limit=` remains readable
+ * from the URL, within `PAGE_SIZE_BOUNDS`, so a link can ask for a different size.
  */
-export const PAGE_SIZE_OPTIONS = [12, 24, 48, 96] as const;
 export const DEFAULT_PAGE_SIZE = 24;
 
 /**

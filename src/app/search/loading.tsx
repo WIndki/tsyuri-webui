@@ -1,5 +1,5 @@
 import { ResultsSkeleton } from "@/components/book/results-skeleton";
-import { PAGE_SIZE_OPTIONS } from "@/lib/search/options";
+import { DEFAULT_PAGE_SIZE } from "@/lib/search/options";
 
 import styles from "./loading.module.css";
 
@@ -26,7 +26,7 @@ export default function SearchLoading() {
                 <div className={`${styles.count} ${styles.block}`} />
             </div>
 
-            <ResultsSkeleton count={PAGE_SIZE_OPTIONS[0]} />
+            <ResultsSkeleton count={DEFAULT_PAGE_SIZE} />
         </div>
     );
 }

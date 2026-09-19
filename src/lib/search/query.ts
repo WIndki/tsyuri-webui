@@ -51,6 +51,7 @@ import {
     WORD_COUNT_VALUES,
     type SortValue,
 } from "./options";
+import { truncate } from "@/lib/format";
 import {
     DEFAULT_DISPLAY_MODE,
     isDisplayMode,
@@ -103,11 +104,11 @@ const MAX_KEYWORD_LENGTH = 100;
 /**
  * Reads a single value from raw search params, taking the *last* occurrence.
  *
- * Repeated keys are otherwise ambiguous: `?curr=1&curr=2` arrives as an array. v1 appended
- * arrays straight into `URLSearchParams`, producing `curr=1,2` and a blank page. Resolving
- * to the last value keeps a URL forgiving without letting it be self-contradictory.
+ * Repeated keys are otherwise ambiguous: `?curr=1&curr=2` arrives as an array. v1 appended arrays straight into
+ * `URLSearchParams`, producing `curr=1,2` and a blank page. Resolving to the last value keeps a URL forgiving without
+ * letting it be self-contradictory.
  */
-function single(raw: RawSearchParams, key: string): string | undefined {
+export function singleParam(raw: RawSearchParams, key: string): string | undefined {
     const value = raw[key];
     if (Array.isArray(value)) return value.at(-1);
     return value;
@@ -149,18 +150,23 @@ function oneOf(value: string | undefined, allowed: ReadonlySet<string>): string 
  * and must not be able to break the page or reach the upstream API unchecked.
  */
 export function parseSearchQuery(raw: RawSearchParams = {}): SearchQuery {
-    const wordCountMin = oneOf(single(raw, "wordCountMin"), WORD_COUNT_VALUES);
-    const wordCountMax = oneOf(single(raw, "wordCountMax"), WORD_COUNT_VALUES);
+    const wordCountMin = oneOf(singleParam(raw, "wordCountMin"), WORD_COUNT_VALUES);
+    const wordCountMax = oneOf(singleParam(raw, "wordCountMax"), WORD_COUNT_VALUES);
 
     const display: DisplayMode = (() => {
-        const value = single(raw, "display");
+        const value = singleParam(raw, "display");
         return isDisplayMode(value) ? value : DEFAULT_DISPLAY_MODE;
     })();
 
-    const requestedPage = clampInt(single(raw, "curr"), { ...PAGE_BOUNDS, fallback: 1 });
+    const requestedPage = clampInt(singleParam(raw, "curr"), { ...PAGE_BOUNDS, fallback: 1 });
 
     return {
-        keyword: (single(raw, "keyword") ?? "").trim().slice(0, MAX_KEYWORD_LENGTH),
+        /*
+         * Truncated by code point, so an emoji at the boundary cannot be cut in half. A lone surrogate left by a
+         * code-unit slice is not a character, and `encodeURIComponent` throws on one, which would take down every route
+         * that builds a URL from this keyword.
+         */
+        keyword: truncate(singleParam(raw, "keyword") ?? "", MAX_KEYWORD_LENGTH),
         /*
          * Infinite scroll has no page to restore.
          *
@@ -170,25 +176,27 @@ export function parseSearchQuery(raw: RawSearchParams = {}): SearchQuery {
          * consumer, on both sides, agrees that an accumulation starts at the first page.
          */
         page: display === "pagination" ? requestedPage : 1,
-        pageSize: clampInt(single(raw, "limit"), {
+        pageSize: clampInt(singleParam(raw, "limit"), {
             ...PAGE_SIZE_BOUNDS,
             fallback: DEFAULT_PAGE_SIZE,
         }),
-        sort: (oneOf(single(raw, "sort"), SORT_VALUES) ?? DEFAULT_SORT) as SortValue,
+        sort: (oneOf(singleParam(raw, "sort"), SORT_VALUES) ?? DEFAULT_SORT) as SortValue,
         display,
-        tag: oneOf(single(raw, "tag"), TAG_VALUES),
-        source: oneOf(single(raw, "source"), SOURCE_VALUES),
-        bookStatus: oneOf(single(raw, "bookStatus"), BOOK_STATUS_VALUES),
-        purity: oneOf(single(raw, "purity"), PURITY_VALUES),
-        updatePeriod: oneOf(single(raw, "updatePeriod"), UPDATE_PERIOD_VALUES),
+        tag: oneOf(singleParam(raw, "tag"), TAG_VALUES),
+        source: oneOf(singleParam(raw, "source"), SOURCE_VALUES),
+        bookStatus: oneOf(singleParam(raw, "bookStatus"), BOOK_STATUS_VALUES),
+        purity: oneOf(singleParam(raw, "purity"), PURITY_VALUES),
+        updatePeriod: oneOf(singleParam(raw, "updatePeriod"), UPDATE_PERIOD_VALUES),
         wordCountMin,
-        // A lower bound at or above the upper bound can never match, so the upper bound is
-        // dropped to leave the widest sensible result set rather than an empty page the user
-        // cannot explain. Upstream validates nothing here and would happily return nothing.
+        /*
+         * An upper bound below the lower bound selects nothing, so it is dropped rather than sent: the visitor gets the
+         * widest sensible result set instead of an empty page with no explanation. Equality is kept, because both bounds
+         * are inclusive, so `wordCountMin=50000&wordCountMax=50000` legitimately selects one band.
+         */
         wordCountMax:
             wordCountMin !== undefined &&
             wordCountMax !== undefined &&
-            Number(wordCountMax) <= Number(wordCountMin)
+            Number(wordCountMax) < Number(wordCountMin)
                 ? undefined
                 : wordCountMax,
     };

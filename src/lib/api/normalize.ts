@@ -21,7 +21,6 @@ import { normalizeWhitespace, parseTags, parseUpstreamEpochMs } from "@/lib/form
 import { purityLabel, type Book, type BookPage, type BookStatus } from "@/lib/api/book";
 import { resolveCoverUrl } from "@/lib/api/cover";
 import {
-    isUpstreamSuccess,
     type UpstreamBook,
     type UpstreamEnvelope,
     type UpstreamPageData,
@@ -31,8 +30,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null;
 }
 
-function asString(value: unknown, fallback = ""): string {
-    return typeof value === "string" ? value : fallback;
+/**
+ * Reads a field that upstream types as a string.
+ *
+ * The types describe what upstream intends, not what it always sends, so anything else reads as empty rather than
+ * throwing. One malformed record should cost its own card, not the page.
+ */
+function asString(value: unknown): string {
+    return typeof value === "string" ? value : "";
 }
 
 /** Absent-or-null string, kept distinct from "present but empty". */
@@ -154,13 +159,12 @@ export function normalizePage(
             total,
             page,
             pageSize,
-            // A full page means there is probably another one. Comparing against the echoed
-            // request size rather than `items.length` keeps this correct even when a record
-            // was dropped during normalization.
-            hasMore: pageSize > 0 && items.length >= pageSize,
+            // A full page means there is probably another one. The upstream reply is counted rather than the surviving
+            // items: a record dropped during normalization would otherwise shorten the page, and a short page is the only
+            // end-of-list signal this endpoint provides, so one bad record would claim the list had ended.
+            hasMore: pageSize > 0 && items.length + droppedCount >= pageSize,
         },
         droppedCount,
     };
 }
 
-export { isUpstreamSuccess };

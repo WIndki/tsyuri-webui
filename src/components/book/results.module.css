@@ -35,10 +35,3 @@
     justify-content: center;
     padding: 12px 0 4px;
 }
-
-.tail {
-    padding: 10px 0 4px;
-    font-size: 13px;
-    color: var(--foreground-subtle);
-    text-align: center;
-}

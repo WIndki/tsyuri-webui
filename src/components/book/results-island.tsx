@@ -67,20 +67,12 @@ export function ResultsIsland({ initialPage, query, now, fromHref }: ResultsIsla
     );
 
     /*
-     * A payload means the wait is over.
+     * The server payload has arrived.
      *
-     * The island is the component the server render arrives at, so it is the one that can report completion.
-     * Nothing needs to be compared: the store only waits while a navigation is outstanding, and while it is
-     * outstanding this component has not yet received a payload for the new query. Showing the skeleton is
-     * therefore what ends the wait, and `endWait` does nothing when no wait is outstanding.
-     */
-    /*
-     * A payload means the read has produced data.
-     *
-     * The island is the component the server payload arrives at, so it is the one that can report it. The
-     * router also re-renders this component a few milliseconds after the click, from the payload it already
-     * had, so the report is not itself proof of a response; `endWait` uses it together with the delay to
-     * decide whether a skeleton is warranted and when the wait is over.
+     * The island is the component the payload reaches, so it is the one that can report completion. The router also
+     * re-renders this component a few milliseconds after the click, from the payload it already had, so a render is not
+     * by itself proof of a response; `endWait` uses it together with the delay to decide whether a skeleton was warranted
+     * and when the wait is over.
      */
     useEffect(() => {
         endWait();
@@ -261,11 +253,12 @@ function InfiniteResults({ initialPage, query, now, fromHref }: InfiniteResultsP
     /*
      * Prepare the cards the visitor has just reached.
      *
-     * Keyed on the page count, so each appended page contributes its own bounded prefetch rather than the whole list being
-     * prepared at once.
+     * Keyed on the loaded page, so each appended page contributes its own bounded prefetch. The list is an
+     * accumulation, so the newest page is at the end: the first entries in it are the pages that were already
+     * prepared when they arrived.
      */
     usePrefetchFirst(
-        books.map((book) => toBookHref(book, fromHref)),
+        books.slice(-initialPage.pageSize).map((book) => toBookHref(book, fromHref)),
         String(loadedPage),
     );
 
