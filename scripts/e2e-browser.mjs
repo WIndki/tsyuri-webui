@@ -396,6 +396,98 @@ await withPage(async (page) => {
     );
 });
 
+/* ── The address bar is not rewritten while a record is open ──────────────── */
+
+await withPage(async (page) => {
+    await gotoAndSettle(page, "/");
+    await page.waitForTimeout(500);
+
+    /*
+     * The results island stays mounted behind the dialog, and its sentinel keeps loading. Anything it writes to the
+     * address bar therefore lands on top of the book's URL. It used to mirror its depth there, so opening a record could
+     * replace the book with the list a second later, and a return to the list started from whatever depth had been
+     * written last.
+     *
+     * The URL is sampled across several seconds rather than once, because the overwrite arrived after a page finished
+     * loading — which is why it looked intermittent.
+     */
+    await page.evaluate(() => {
+        window.__urls = [];
+        const sample = () => window.__urls.push(window.location.pathname + window.location.search);
+        sample();
+        window.__urlTimer = setInterval(sample, 100);
+    });
+
+    await page.locator("article a").first().click({ timeout: 25000 });
+    await page.waitForURL(/\/book\/\d+/, { timeout: 20000 });
+    await page.waitForTimeout(7000);
+
+    const urls = await page.evaluate(() => {
+        clearInterval(window.__urlTimer);
+        return window.__urls;
+    });
+
+    const bookPath = urls.find((url) => url.startsWith("/book/"));
+    const reverted = urls.slice(urls.indexOf(bookPath)).filter((url) => !url.startsWith("/book/"));
+
+    report(
+        "opening a record is not undone by the list behind it",
+        bookPath !== undefined ? null : "the address bar never showed the book",
+    );
+    report(
+        "the book URL survives while the record is open",
+        reverted.length === 0 ? null : `the address bar became ${reverted[0]} after the book was opened`,
+    );
+
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(1500);
+});
+
+/* ── Returning from a record keeps the list where it was ──────────────────── */
+
+await withPage(async (page) => {
+    await gotoAndSettle(page, "/");
+    await page.waitForTimeout(500);
+
+    // Load a second page so the list is taller than the first result set.
+    await page.locator("button", { hasText: "加载下一页" }).scrollIntoViewIfNeeded().catch(() => {});
+    await page.waitForTimeout(6000);
+
+    const before = await page.evaluate(() => ({
+        cards: document.querySelectorAll("article").length,
+        firstLink: document.querySelector("article a")?.getAttribute("href") ?? "",
+    }));
+
+    await page.locator("article a").nth(Math.min(before.cards - 2, 30)).click({ timeout: 25000 });
+    await page.waitForURL(/\/book\/\d+/, { timeout: 20000 });
+    await page.waitForTimeout(2500);
+    await page.goBack();
+    await page.waitForTimeout(3000);
+
+    const after = await page.evaluate(() => ({
+        cards: document.querySelectorAll("article").length,
+        firstLink: document.querySelector("article a")?.getAttribute("href") ?? "",
+        search: window.location.search,
+    }));
+
+    report(
+        "returning from a record restores the accumulated list",
+        after.cards >= before.cards
+            ? null
+            : `${after.cards} cards remained of ${before.cards}`,
+    );
+    report(
+        "returning from a record starts the list from the first page",
+        after.firstLink === before.firstLink
+            ? null
+            : `the first card changed from ${before.firstLink.slice(0, 24)} to ${after.firstLink.slice(0, 24)}`,
+    );
+    report(
+        "the depth is not carried in the address bar",
+        !after.search.includes("curr=") ? null : `the URL was ${after.search}`,
+    );
+});
+
 /* ── Display mode is part of the URL, so the server renders the right variant ─ */
 
 await withPage(async (page) => {

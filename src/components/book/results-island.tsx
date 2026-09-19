@@ -184,13 +184,18 @@ interface InfiniteResultsProps {
 /**
  * An accumulation of pages, appended as the sentinel comes into view.
  *
- * Every appended page is fetched through the `loadBookPage` Server Action, so the browser never contacts the
- * upstream index, the server data cache is reused, and the depth is mirrored into the URL with
- * `replaceState` purely so a reload or a share keeps the visitor's place.
+ * Every appended page is fetched through the `loadBookPage` Server Action, so the browser never contacts the upstream
+ * index and the server data cache is reused.
  *
- * `hasMore` is tracked as state rather than read back from the initial page. Reading it from `initialPage`
- * would be wrong: after appending page 2 it still described page 1, so the sentinel reported "no more" and
- * scrolling stopped one page in.
+ * The depth is deliberately kept out of the URL. Writing it there looked harmless — the visitor did not ask to go
+ * anywhere, so `replaceState` rather than a history entry — but the island stays mounted while a record is open, and the
+ * sentinel keeps loading while the visitor reads. Each load rewrote the address bar, replacing the book's URL with the
+ * list's. So opening a record could cancel itself a second after it opened, and a return to the list started from
+ * whatever depth had been written last rather than from the top.
+ *
+ * `hasMore` is tracked as state rather than read back from the initial page. Reading it from `initialPage` would be
+ * wrong: after appending page 2 it still described page 1, so the sentinel reported "no more" and scrolling stopped one
+ * page in.
  */
 function InfiniteResults({ initialPage, query, now, fromHref }: InfiniteResultsProps) {
     const [books, setBooks] = useState<Book[]>(initialPage.items);
@@ -216,12 +221,6 @@ function InfiniteResults({ initialPage, query, now, fromHref }: InfiniteResultsP
             });
             setLoadedPage(page);
             setHasMore(result.page.hasMore);
-
-            // Mirror the depth into the URL without navigating: the visitor did not ask to go anywhere, so a
-            // history entry would be wrong, but a reload or a share should land near where they stopped.
-            const url = new URL(window.location.href);
-            url.searchParams.set("curr", String(page));
-            window.history.replaceState(null, "", url);
         },
         [query, report],
     );
