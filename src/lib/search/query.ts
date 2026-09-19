@@ -235,8 +235,8 @@ export function toUpstreamParams(query: SearchQuery): UpstreamSearchParams {
     const params: UpstreamSearchParams = {
         // Clamped defensively in addition to `parseSearchQuery`, because `limit=0` makes
         // upstream serialise the entire 87,233-record table.
-        curr: Math.max(PAGE_BOUNDS.min, query.page),
-        limit: Math.min(PAGE_SIZE_BOUNDS.max, Math.max(PAGE_SIZE_BOUNDS.min, query.pageSize)),
+        curr: Math.min(PAGE_BOUNDS.max, Math.max(PAGE_BOUNDS.min, Math.trunc(query.page) || PAGE_BOUNDS.min)),
+        limit: Math.min(PAGE_SIZE_BOUNDS.max, Math.max(PAGE_SIZE_BOUNDS.min, Math.trunc(query.pageSize) || PAGE_SIZE_BOUNDS.min)),
         sort: query.sort,
     };
 
@@ -319,16 +319,21 @@ export function countActiveFilters(facets: FacetValues): number {
 }
 
 /**
- * Returns a copy of `query` reset to page 1.
+ * Returns a copy of `query` moved to `page`, clamped into `PAGE_BOUNDS`.
  *
- * Every filter change must go through this: keeping `curr=7` while the filters change
- * routinely lands the user past the end of the new result set, which renders as an empty
- * page with no explanation.
+ * Every filter change must go through this: keeping `curr=7` while the filters change routinely lands the visitor past the
+ * end of the new result set, which renders as an empty page with no explanation.
+ *
+ * A page that is not a whole number is replaced rather than clamped. `Math.min`/`Math.max` pass `NaN` straight through,
+ * and a fractional page reaches upstream as `curr=1.5`, which it answers with an error.
  */
 export function withPage(query: SearchQuery, page: number): SearchQuery {
+    const bounded =
+        Number.isInteger(page) && page >= PAGE_BOUNDS.min && page <= PAGE_BOUNDS.max ? page : 1;
+
     return {
         ...query,
-        page: Math.max(PAGE_BOUNDS.min, Math.min(page, PAGE_BOUNDS.max)),
+        page: bounded,
     };
 }
 
@@ -341,6 +346,58 @@ export function withPage(query: SearchQuery, page: number): SearchQuery {
 export function withPatch(query: SearchQuery, patch: Partial<SearchQuery>): SearchQuery {
     const next = { ...query, ...patch };
     return patch.page === undefined ? withPage(next, 1) : next;
+}
+
+/**
+ * Rebuilds a query from a value that arrived over the wire.
+ *
+ * `parseSearchQuery` is not enough on its own: it reads URL strings, while a Server Action receives a deserialised
+ * object whose fields a hostile caller can set to anything — a page of `NaN` or `1.5`, an unknown `sort`, a page size
+ * outside the bounds, a keyword of any length. Every field is therefore taken back through the same tables and bounds the
+ * URL path uses, and anything unrecognised is dropped rather than forwarded.
+ *
+ * This is the entry point that matters most, because the Server Action is a public HTTP endpoint and the bounds it
+ * enforces are load-bearing: `limit=0` makes upstream serialise its entire table, and an unrecognised `sort` is answered
+ * with a server error rather than a fallback.
+ */
+export function sanitizeQuery(input: unknown): SearchQuery {
+    const source = (typeof input === "object" && input !== null ? input : {}) as Record<
+        string,
+        unknown
+    >;
+
+    const asText = (value: unknown): string | undefined =>
+        typeof value === "string" ? value : undefined;
+
+    const number = (value: unknown, bounds: { min: number; max: number }, fallback: number): number =>
+        typeof value === "number" && Number.isInteger(value) && value >= bounds.min && value <= bounds.max
+            ? value
+            : fallback;
+
+    const display: DisplayMode = isDisplayMode(source.display) ? source.display : DEFAULT_DISPLAY_MODE;
+    const requestedPage = number(source.page, PAGE_BOUNDS, 1);
+
+    return {
+        ...parseSearchQuery({
+            keyword: asText(source.keyword),
+            curr: String(requestedPage),
+            limit: String(number(source.pageSize, PAGE_SIZE_BOUNDS, DEFAULT_PAGE_SIZE)),
+            sort: asText(source.sort),
+            display,
+            tag: asText(source.tag),
+            source: asText(source.source),
+            bookStatus: asText(source.bookStatus),
+            purity: asText(source.purity),
+            updatePeriod: asText(source.updatePeriod),
+            wordCountMin: asText(source.wordCountMin),
+            wordCountMax: asText(source.wordCountMax),
+        }),
+        /*
+         * Infinite scroll has no page, so a caller that alleges one is not believed even when the number is a valid page.
+         * `parseSearchQuery` applies the same rule for the URL path.
+         */
+        page: display === "pagination" ? requestedPage : 1,
+    };
 }
 
 /** Drops every filter but keeps paging preferences. */

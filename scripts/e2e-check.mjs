@@ -162,6 +162,19 @@ for (const params of hostileParams) {
     });
 }
 
+/*
+ * A keyword whose truncation boundary falls inside an emoji.
+ *
+ * Truncating by UTF-16 code unit leaves a lone surrogate at the cut, and `encodeURIComponent` throws on one, so this
+ * request used to fail the whole route with HTTP 500 rather than rendering a page with no matches.
+ */
+const boundaryKeyword = `${"a".repeat(99)}${String.fromCodePoint(0x1f600)}`;
+await check(
+    "a keyword truncated inside an emoji still renders",
+    `/search?keyword=${encodeURIComponent(boundaryKeyword)}`,
+    (r) => isRenderedPage(r),
+);
+
 /* The manifest must reference icons that actually exist. v1's referenced four files that did not. */
 const manifestResponse = await fetch(`${BASE}/manifest.webmanifest`);
 if (manifestResponse.status !== 200) {

@@ -30,16 +30,44 @@ export function parseUpstreamEpochMs(value: string | null | undefined): number |
     if (!match) return null;
 
     const [, year, month, day, hour, minute, second] = match;
+    const parts = {
+        year: Number(year),
+        month: Number(month),
+        day: Number(day),
+        hour: Number(hour),
+        minute: Number(minute),
+        second: Number(second),
+    };
+
+    /*
+     * The pattern checks the shape of the value, not whether the numbers exist on a calendar.
+     * `Date.UTC` silently rolls an out-of-range component into the next unit, so "2026-13-45" would become a real
+     * instant in 2027 and the card would show a plausible but invented relative date. Every component is therefore
+     * checked before it is used.
+     */
+    if (
+        parts.month < 1 ||
+        parts.month > 12 ||
+        parts.day < 1 ||
+        parts.day > 31 ||
+        parts.hour > 23 ||
+        parts.minute > 59 ||
+        parts.second > 59
+    ) {
+        return null;
+    }
+
     const utcMillis = Date.UTC(
-        Number(year),
-        Number(month) - 1,
-        Number(day),
-        Number(hour),
-        Number(minute),
-        Number(second),
+        parts.year,
+        parts.month - 1,
+        parts.day,
+        parts.hour,
+        parts.minute,
+        parts.second,
     );
 
-    if (Number.isNaN(utcMillis)) return null;
+    // Catches the remaining impossible days, such as the 31st of a month with 30.
+    if (new Date(utcMillis).getUTCDate() !== parts.day) return null;
 
     return utcMillis - CHINA_OFFSET_MINUTES * 60_000;
 }
@@ -80,10 +108,28 @@ export function formatRelativeDate(
     return `${Math.floor(months / 12)}年前`;
 }
 
-/** Absolute timestamp for a `title` attribute, in the visitor's locale. */
+/**
+ * Absolute timestamp for a `title` attribute.
+ *
+ * Formatted in the index's own timezone rather than the runtime's. `toLocaleString` without a `timeZone` uses whatever
+ * the process is set to, so the server render and the browser could produce different strings for the same instant — a
+ * hydration mismatch on the attribute — and a visitor outside China would be shown a time that is not the time the index
+ * recorded. The same UTC+8 basis as `parseUpstreamEpochMs` keeps the two ends of the conversion agreeing.
+ */
+const ABSOLUTE_DATE_TIME = new Intl.DateTimeFormat("zh-CN", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+});
+
 export function formatAbsoluteDate(epochMs: number | null | undefined): string {
     if (epochMs === null || epochMs === undefined) return "";
-    return new Date(epochMs).toLocaleString("zh-CN");
+    return ABSOLUTE_DATE_TIME.format(epochMs);
 }
 
 /** `"226937"` → `"22.7万字"`. Returns `"未知"` for unparseable input. */
