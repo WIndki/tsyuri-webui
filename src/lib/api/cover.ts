@@ -27,7 +27,7 @@ import { UPSTREAM_ORIGIN } from "./upstream";
 export const COVER_PLACEHOLDER = "/images/book-placeholder.jpg";
 
 /** Prefix upstream uses for the covers it mirrors itself. */
-export const LOCAL_PIC_PREFIX = "/localPic/";
+const LOCAL_PIC_PREFIX = "/localPic/";
 
 export function resolveCoverUrl(picUrl: string | null | undefined): string {
     const raw = picUrl?.trim();

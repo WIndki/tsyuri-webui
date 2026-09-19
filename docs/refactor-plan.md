@@ -106,6 +106,33 @@ belongs in the URL.** Client preferences are for things that only affect the cli
 
 ---
 
+## 3b. Loading feedback for a read the URL describes
+
+A search, a facet change and a page change all navigate to a new URL whose content the server has not
+built yet. Three mechanisms that look like they should cover this do not, each established by
+measurement rather than assumption:
+
+| Mechanism | What actually happens |
+| --- | --- |
+| `useTransition`'s pending flag | Clears ~40 ms after the click, when the router commits the URL, while the payload takes ~1 s. A skeleton keyed to it appears and vanishes before any data arrives. |
+| Route-level `loading.tsx` | Does not render for a change of `searchParams` on the same route, so the streaming fallback never engages. |
+| `<Suspense>` inside the page | Does not re-suspend either. The boundary resolves once during the server render and is not re-entered by a search-parameter-only navigation. |
+
+The signal has to come from the component the payload arrives at, which is the results island. The
+delay before showing a skeleton is what makes its report meaningful: the router re-renders the island
+from the old payload within a few tens of milliseconds, so a report is not by itself proof of a
+response. Once the delay has elapsed with no payload, the wait is visible and the next payload is the
+answer. See `lib/search/ui-store.ts`.
+
+### Do not nest a transition inside `router.push`
+
+`router.push` already runs inside a React transition. Wrapping it in `startTransition` makes the outer
+transition supersede the inner, and React then **discards the render that finally carries the server
+payload** as interrupted. The component never sees its own response, so a skeleton shown for that
+navigation can never be cleared. The symptom is a page stuck on placeholders with an idle network.
+
+---
+
 ## 4. Server vs. client boundary
 
 | Concern | Where it lives | Why |
@@ -182,15 +209,24 @@ worth calling out here because they drive code structure:
 Every phase must pass:
 
 ```
-npm run typecheck   # tsc --noEmit, strict + noUncheckedIndexedAccess
-npm run lint        # eslint flat config (v1 had none)
-npm run build       # next build (Turbopack)
-npm run e2e         # HTTP checks against a running `next start` (see scripts/e2e-check.mjs)
+npm run typecheck        # tsc --noEmit, strict + noUncheckedIndexedAccess
+npm run lint             # eslint flat config (v1 had none)
+npm run build            # next build (Turbopack)
+npm run e2e              # 23 checks over HTTP against a running `next start`
+npm run e2e:browser      # 13 checks in Chrome via Playwright
+npm run e2e:loading      # 6 checks on the loading sequence
+npm run check:deprecations   # console warnings, needs `npm run dev`
 ```
 
-`npm run e2e` talks to the real upstream index, so it covers what unit tests cannot: that the
-parsing layer neutralises hostile URL parameters, that each filter reaches upstream in the form it
-expects, and that the page still renders when a query matches nothing.
+The three end-to-end suites read the live upstream index, so they cover what unit tests cannot: that the
+parsing layer neutralises hostile URL parameters, that each facet reaches upstream in the form it expects,
+that the page still renders when a query matches nothing, that the URL and the rendered list agree, and
+that the placeholders appear and are replaced.
+
+All of them talk to a running server rather than importing modules, because the behaviour worth checking
+here — what the server renders, what the browser shows while it waits — does not exist at module level.
+`npm run check:deprecations` is the exception: it must run against `npm run dev`, because React strips the
+warnings it looks for from a production build.
 
 ---
 

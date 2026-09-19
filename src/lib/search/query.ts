@@ -182,7 +182,7 @@ export function parseSearchQuery(raw: RawSearchParams = {}): SearchQuery {
     };
 }
 
-export interface UpstreamSearchParams {
+interface UpstreamSearchParams {
     /**
      * Index signature so this interface is structurally assignable to
      * `Record<string, string | number | undefined>`, which is what the URL builder accepts.

@@ -55,7 +55,7 @@ export function setRetryAction(action: (() => void) | null): void {
     retryAction.current = action;
 }
 
-export interface LastFailure {
+interface LastFailure {
     /** Visitor-facing description, already translated from the error kind. */
     message: string;
     /** Whether repeating the identical request could plausibly succeed. */

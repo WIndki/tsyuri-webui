@@ -112,7 +112,7 @@ export function normalizeBook(raw: UpstreamBook): Book | null {
     };
 }
 
-export interface NormalizeResult {
+interface NormalizeResult {
     page: BookPage;
     /** Records rejected by `normalizeBook`. Non-zero means upstream data regressed. */
     droppedCount: number;

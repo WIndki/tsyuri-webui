@@ -39,7 +39,7 @@ export const BRAND = {
     dark: "#3c9ae8",
 } as const;
 
-export function isThemeMode(value: unknown): value is ThemeMode {
+function isThemeMode(value: unknown): value is ThemeMode {
     return value === "light" || value === "dark";
 }
 

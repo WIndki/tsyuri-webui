@@ -31,7 +31,7 @@
  * a cumulative quality threshold. Passing a letter grade to the query parameter is a hard
  * error (`code: "500"`).
  */
-export type PurityGrade = string;
+type PurityGrade = string;
 
 /** `bookStatus` is a stringified boolean. Only `"0"` and `"1"` were ever observed. */
 export type BookStatus = "0" | "1";
@@ -144,7 +144,7 @@ export interface UpstreamEnvelope {
 }
 
 /** `code` values that mean success. */
-export const UPSTREAM_OK_CODES: ReadonlySet<string> = new Set(["200", "0"]);
+const UPSTREAM_OK_CODES: ReadonlySet<string> = new Set(["200", "0"]);
 
 export function isUpstreamSuccess(
     envelope: UpstreamEnvelope,

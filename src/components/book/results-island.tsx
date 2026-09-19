@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { useRouter } from "next/navigation";
 
 import { Pagination } from "antd";
 
@@ -10,6 +9,7 @@ import { BookCard } from "@/components/book/book-card";
 import { ResultsSkeleton } from "@/components/book/results-skeleton";
 import type { Book, BookPage } from "@/lib/api/book";
 import { toSearchParams, type SearchQuery } from "@/lib/search/query";
+import { useSearchNavigation } from "@/lib/search/use-search-navigation";
 import { useUiStore, setRetryAction } from "@/lib/search/ui-store";
 import { loadBookPage } from "@/lib/server/book-actions";
 
@@ -86,7 +86,15 @@ export function ResultsIsland({ initialPage, query, now, fromHref }: ResultsIsla
     }
 
     if (query.display === "pagination") {
-        return <PaginatedResults key={queryKey} page={initialPage} now={now} fromHref={fromHref} />;
+        return (
+            <PaginatedResults
+                key={queryKey}
+                page={initialPage}
+                query={query}
+                now={now}
+                fromHref={fromHref}
+            />
+        );
     }
 
     return (
@@ -104,6 +112,7 @@ export function ResultsIsland({ initialPage, query, now, fromHref }: ResultsIsla
 
 interface PaginatedResultsProps {
     page: BookPage;
+    query: SearchQuery;
     now: number;
     fromHref: string;
 }
@@ -115,21 +124,19 @@ interface PaginatedResultsProps {
  * server renders the matching items, and copying them into a `useState` only creates a second copy that can
  * fall behind the first.
  */
-function PaginatedResults({ page, now, fromHref }: PaginatedResultsProps) {
-    const router = useRouter();
+function PaginatedResults({ page, query, now, fromHref }: PaginatedResultsProps) {
+    /*
+     * The shared navigation hook rather than `router.push` directly, so changing page records a wait and the
+     * results area shows placeholders for the new page. Navigating by hand here skipped that, which made a
+     * page change the one read with no indication that anything was happening.
+     */
+    const { goToPage } = useSearchNavigation();
 
-    const goToPage = useCallback(
+    const changePage = useCallback(
         (next: number) => {
-            const url = new URL(window.location.href);
-            url.searchParams.set("curr", String(next));
-            /*
-             * A router navigation rather than `window.location.assign`: it keeps the App Router informed, so
-             * the prefetched payload and the client cache are reused and the scroll position is restored by
-             * the framework rather than by a full document load.
-             */
-            router.push(`${url.pathname}${url.search}`, { scroll: true });
+            goToPage(query, next);
         },
-        [router],
+        [goToPage, query],
     );
 
     return (
@@ -158,7 +165,7 @@ function PaginatedResults({ page, now, fromHref }: PaginatedResultsProps) {
                     // quick-jump is offered only when the pager is clearly useful.
                     showQuickJumper={page.total > page.pageSize * 20}
                     hideOnSinglePage
-                    onChange={goToPage}
+                    onChange={changePage}
                 />
             </div>
         </section>

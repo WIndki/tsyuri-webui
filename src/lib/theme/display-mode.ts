@@ -12,7 +12,7 @@
 
 export type DisplayMode = "infinite" | "pagination";
 
-export const DISPLAY_MODE_STORAGE_KEY = "tsyuri.displayMode";
+const DISPLAY_MODE_STORAGE_KEY = "tsyuri.displayMode";
 
 /** Default for a visitor with no stored preference and a non-iOS user agent. */
 export const DEFAULT_DISPLAY_MODE: DisplayMode = "infinite";

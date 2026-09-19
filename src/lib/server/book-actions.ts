@@ -24,7 +24,7 @@ import { withPage, withPatch, type SearchQuery } from "@/lib/search/query";
  * surfaces as an opaque runtime error in production, and the caller needs the failure kind to
  * decide whether to offer a retry.
  */
-export type LoadBookPageResult =
+type LoadBookPageResult =
     | { ok: true; page: BookPage }
     | { ok: false; message: string; retryable: boolean };
 

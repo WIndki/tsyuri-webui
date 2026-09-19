@@ -36,23 +36,24 @@ export function createThemeConfig(mode: ThemeMode): ThemeConfig {
                 '-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif',
 
             /*
-             * Motion, expressed in antd's own tokens so every component animates on the same clock.
+             * Motion, set through antd's own tokens so every component animates on one clock.
              *
-             * `motionUnit` is the basis of every derived duration: `motionDurationFast`, `Mid` and
-             * `Slow` are computed from it, so lowering it to 0.08 shortens all three at once — 80ms,
-             * 160ms and 240ms rather than antd's 100/200/300. Ant Design's own guidance for
-             * enterprise interfaces is to complete a transition quickly, and 80ms for a hover or a
-             * focus ring reads as immediate while still being a transition rather than a jump.
+             * The three durations are overridden directly rather than through `motionUnit`. That basis
+             * rounds: 0.08 produces 0.1 s / 0.2 s / 0.2 s, which makes the medium and slow steps identical
+             * and so removes a distinction the components rely on. Setting them explicitly gives a scale
+             * that actually descends, which is what makes a hover feel quicker than a panel opening.
              *
-             * `motionBase` shifts every duration by a fixed amount. It stays at its default of 0:
-             * adding to the basis would slow the largest transitions without helping the small ones,
-             * which is the opposite of what a dense grid needs.
+             * 80 ms is short enough that a hover or a focus ring reads as immediate rather than as a
+             * transition, while still being one. The slow step stays at antd's 300 ms: it is used for large
+             * surfaces, where a faster motion reads as a jump.
              *
-             * The curves are left alone. `motionEaseOutCirc` already decelerates the way a panel
-             * opening or a menu appearing should, and replacing antd's curves with hand-picked ones
-             * would make this application's motion inconsistent with every antd component it embeds.
+             * The easing curves are left alone. `motionEaseOutCirc` already decelerates the way a panel
+             * opening or a menu appearing should, and hand-picked curves would make this application's
+             * motion inconsistent with the antd components it embeds.
              */
-            motionUnit: 0.08,
+            motionDurationFast: "0.08s",
+            motionDurationMid: "0.16s",
+            motionDurationSlow: "0.3s",
         },
         components: {
             Card: {
