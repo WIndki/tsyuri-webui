@@ -5,17 +5,14 @@ import styles from "./book-detail-skeleton.module.css";
 /**
  * The record's shape, before the record arrives.
  *
- * Resolving a book means searching the upstream index by title, which is the slowest read in the application, so this
- * is the placeholder that is seen most. The layout mirrors the real one — cover beside the facts, then the
- * description panel — with the cover holding the same 3:4 ratio, so nothing moves when the record lands.
+ * Resolving a book means searching the upstream index by title, which is the slowest read in the application, so this is
+ * the placeholder that is seen most. The layout mirrors the real one — cover beside the facts, then the description
+ * panel — with the cover holding the same 3:4 ratio, so nothing moves when the record lands.
  *
- * Shared by the page's `loading.tsx` and the modal branch's, so the two cannot show different shapes for the same
- * wait.
- *
- * Every block is a plain element carrying the shared shimmer. antd's `Skeleton` cannot be used: its parts are
- * compound sub-components, and those are `undefined` in a Server Component, which is what a `loading.tsx` file is.
+ * Every block is a plain element carrying the shared shimmer. antd's `Skeleton` cannot be used: its parts are compound
+ * sub-components, and those are `undefined` in a Server Component, which is what a `loading.tsx` file is.
  */
-export function BookDetailSkeleton({ leading = true }: { leading?: boolean }) {
+export function BookDetailSkeleton() {
     /*
      * Combines a block's own size with the shared shimmer.
      *
@@ -38,9 +35,6 @@ export function BookDetailSkeleton({ leading = true }: { leading?: boolean }) {
          * a busy region could not tell the record's placeholder from the list's.
          */
         <div className={styles.page} aria-busy data-placeholder="book-detail">
-            {/* The page has a back link above the record; the modal does not. */}
-            {leading ? <div className={block(styles.back)} /> : null}
-
             <div className={styles.layout}>
                 <div className={block(styles.cover)} />
 

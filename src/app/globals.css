@@ -33,8 +33,13 @@
     --accent: var(--ant-color-primary, #1677ff);
     --accent-soft: rgb(22 119 255 / 8%);
 
+    /* The ambient wash behind the whole page. Two tints of the accent, at an opacity that only resolves as colour. */
+    --ambient-a: rgb(22 119 255 / 7%);
+    --ambient-b: rgb(114 46 209 / 5%);
+
     --shadow-card: 0 1px 2px rgb(16 24 40 / 4%), 0 1px 3px rgb(16 24 40 / 6%);
     --shadow-raised: 0 4px 12px rgb(16 24 40 / 8%);
+    --shadow-lift: 0 12px 28px rgb(16 24 40 / 14%);
 
     --radius: 12px;
     --radius-small: 8px;
@@ -59,9 +64,14 @@
 
     --accent-soft: rgb(60 154 232 / 14%);
 
+    /* Dimmer than in light mode: on a near-black page the same opacity reads as a coloured fog. */
+    --ambient-a: rgb(60 154 232 / 9%);
+    --ambient-b: rgb(140 96 240 / 7%);
+
     /* Shadows do not read on a dark surface; separation comes from the border instead. */
     --shadow-card: none;
     --shadow-raised: 0 4px 12px rgb(0 0 0 / 40%);
+    --shadow-lift: 0 12px 28px rgb(0 0 0 / 55%);
 
     color-scheme: dark;
 }
@@ -79,10 +89,103 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
+/*
+ * Touch behaviour.
+ *
+ * `manipulation` removes the double-tap-to-zoom delay, so a tap on a control acts immediately. Pinch zoom stays
+ * available, which the setting does not affect, so a visitor who needs to magnify a cover still can.
+ *
+ * Scroll chaining is deliberately left at its default. Containing it on the body stops the wheel over any element that
+ * is not itself a scroll container, which disables scrolling across most of the grid.
+ */
+body {
+    touch-action: manipulation;
+}
+
 html {
     /* Prevents the layout shifting when a page grows tall enough to need a scrollbar. */
     scrollbar-gutter: stable;
     scroll-behavior: smooth;
+}
+
+/*
+ * The ambient wash behind the page.
+ *
+ * Two soft tints of the accent, fixed to the viewport so they do not move with the content, at an opacity that only
+ * resolves as colour. It gives the large empty gutters either side of the grid something to be, and keeps the covers as
+ * the only high-contrast thing on screen.
+ *
+ * `pointer-events: none` so it never intercepts a press. It sits behind everything because the shell paints its own
+ * background above it.
+ */
+body::before {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    content: "";
+    background:
+        radial-gradient(60rem 40rem at 12% -6%, var(--ambient-a), transparent 62%),
+        radial-gradient(52rem 36rem at 96% 4%, var(--ambient-b), transparent 60%);
+}
+
+/*
+ * Cursor states.
+ *
+ * Everything pressable says so. The default arrow is reserved for text and for space that does nothing, which is what
+ * makes a card, a tag or a pager item read as pressable before it is pressed.
+ */
+a,
+button,
+[role="button"],
+summary,
+select,
+label[for],
+.ant-segmented-item,
+.ant-pagination-item,
+.ant-tag-checkable,
+.ant-float-btn {
+    cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+    cursor: not-allowed;
+}
+
+/* A press confirms itself immediately, which is what makes a control feel connected to the pointer. */
+.ant-btn:active:not(:disabled),
+.ant-float-btn:active,
+button:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.ant-btn,
+.ant-float-btn,
+.ant-segmented-item,
+.ant-pagination-item,
+.ant-tag {
+    transition:
+        transform var(--ant-motion-duration-fast, 0.08s) var(--ant-motion-ease-out-circ, ease-out),
+        color var(--ant-motion-duration-mid, 0.16s) var(--ant-motion-ease-out-circ, ease-out),
+        background-color var(--ant-motion-duration-mid, 0.16s) var(--ant-motion-ease-out-circ, ease-out),
+        border-color var(--ant-motion-duration-mid, 0.16s) var(--ant-motion-ease-out-circ, ease-out);
+}
+
+/*
+ * The theme reveal.
+ *
+ * The browser cross-fades the whole page by default, which reads as a flicker across the entire interface. Suppressing
+ * the default animation leaves the change to the circle that `view-transition.ts` grows from the pressed control.
+ */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
+/* The incoming rendering is the one being revealed, so it has to sit above the outgoing one. */
+::view-transition-new(root) {
+    z-index: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -94,7 +197,65 @@ html {
     *::before,
     *::after {
         animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+    }
+
+    /* A press that scales is motion, so it is dropped along with everything else. */
+    .ant-btn:active:not(:disabled),
+    .ant-float-btn:active,
+    button:active:not(:disabled) {
+        transform: none;
+    }
+}
+
+/*
+ * Touch sizing.
+ *
+ * antd's default control height is 32px, which is right for a pointer and too small for a thumb: the guidance for a
+ * touch target is 44px, and below that a tap lands on the neighbour often enough to be felt. These rules raise the
+ * controls that are actually pressed on a phone, and leave the dense ones inside a card alone.
+ *
+ * A pointer query rather than a width query, because the two are not the same question: a narrow window on a desktop
+ * still has a mouse, and a tablet has a thumb at any width.
+ */
+@media (pointer: coarse) {
+    .ant-btn,
+    .ant-input-affix-wrapper,
+    .ant-select-selector,
+    .ant-picker {
+        min-height: 44px;
+    }
+
+    .ant-modal-close {
+        width: 44px;
+        height: 44px;
+    }
+
+    /* A segmented item is the whole tap target for a facet, so it gets the full height rather than the text height. */
+    .ant-segmented-item-label {
+        display: flex;
+        align-items: center;
+        min-height: 40px;
+    }
+
+    .ant-pagination-item,
+    .ant-pagination-prev,
+    .ant-pagination-next {
+        min-width: 40px;
+        min-height: 40px;
+        line-height: 40px;
+    }
+
+    .ant-tag {
+        padding-block: 3px;
+    }
+}
+
+/* The grid scrolls under a thumb rather than being dragged by the page. */
+@media (pointer: coarse) and (max-width: 640px) {
+    .ant-modal-body {
+        -webkit-overflow-scrolling: touch;
     }
 }
 

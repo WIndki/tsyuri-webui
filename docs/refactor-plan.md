@@ -33,7 +33,7 @@ otherwise be re-litigated by the next person to touch the repository.
 | Every component split into `index.tsx` + `XxxUI.tsx` + `useXxx.ts` | Splitting by responsibility: a component is a Server Component until it needs interactivity. Applied mechanically, the old shape produced hooks that returned a constant and prop chains that passed `dispatch` through three layers. |
 | Client-side-only rendering | Server rendering from `searchParams`, so the HTML already contains the books. v1 required hydration, then a `router.isInitialized` flag, then a fetch, before any content was requested. |
 | `react-infinite-scroll-component` | An `IntersectionObserver` sentinel with a manual fallback button. |
-| A `modal.info` detail dialog | A real `/book/[id]` route, so a book is linkable, shareable and crawlable. |
+| A `modal.info` detail dialog | A real `/book/[id]` route, intercepted so a click opens it over the list. The dialog is server-rendered and the URL is real, so a book stays linkable while the list stays on screen. |
 | `axios` | Nothing; it was a dead dependency. |
 | `@ant-design/v5-patch-for-react-19` | Nothing; antd v6 supports React 19 natively. |
 
@@ -54,7 +54,7 @@ flowchart TD
     ISLAND -->|infinite| ACTION["loadBookPage Server Action<br/>appends the next page"]
     PAGER --> URL
     TOOLBAR["PageToolbar<br/>theme · display mode · about"] --> URL
-    DETAIL["app/book/[id]/page.tsx<br/>Server Component"] --> DETAILCACHE["lib/server/book-detail.ts<br/>lookup by title, verify id"]
+    DETAIL["app/@modal/(.)book/[id]/page.tsx<br/>Server Component"] --> DETAILCACHE["lib/server/book-detail.ts<br/>lookup by title, verify id"]
 ```
 
 Client islands, and nothing else:

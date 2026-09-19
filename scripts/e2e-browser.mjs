@@ -252,34 +252,147 @@ await withPage(async (page) => {
     report("card link points at a book route", /^\/book\/\d+/.test(href ?? "") ? null : `href was ${href}`);
 });
 
-/* ── Opening a book URL directly renders the full page, not the dialog ─────── */
+/* ── A book URL is only reachable through the list ────────────────────────── */
 
 await withPage(async (page) => {
     await gotoAndSettle(page, "/");
     const href = await page.locator("article a").first().getAttribute("href");
 
     /*
-     * Interception only applies to a client navigation. A direct visit — a shared link, a reload, a crawler — has to
-     * render the record as a page, which is why the same URL is served by two routes.
+     * There is one route for a record: the intercepted one. Nothing renders a book outside the list it was opened from,
+     * so a direct request for the URL is a 404. Asserted rather than tolerated, because a second rendering would be the
+     * place the two could disagree.
      */
-    await page.goto(`${BASE}${href}`, { waitUntil: "domcontentloaded" });
-    await page.waitForSelector("h1", { timeout: 30000 });
-    await page.waitForTimeout(500);
-
-    const direct = await page.evaluate(() => ({
-        modals: document.querySelectorAll(".ant-modal").length,
-        hasBackLink: [...document.querySelectorAll("button")].some((node) =>
-            /返回结果/.test(node.textContent ?? ""),
-        ),
-    }));
-
+    const response = await page.goto(`${BASE}${href}`, { waitUntil: "domcontentloaded" });
     report(
-        "a direct visit to a book URL renders the full page",
-        direct.modals === 0 ? null : "a dialog was rendered for a direct visit",
+        "a direct request for a book URL is not found",
+        response?.status() === 404 ? null : `the server answered ${response?.status()}`,
+    );
+});
+
+/* ── The record offers copy and search, and they work ─────────────────────── */
+
+await withPage(async (page) => {
+    // Clipboard access needs a permission grant in Chrome; without it the write rejects.
+    await page.context().grantPermissions(["clipboard-read", "clipboard-write"], { origin: BASE });
+
+    await gotoAndSettle(page, "/");
+    await page.locator("article a").first().click();
+    await page.waitForURL(/\/book\/\d+/, { timeout: 20000 });
+    const modal = page.locator(".ant-modal");
+    await modal.locator("h1").waitFor({ state: "visible", timeout: 30000 });
+
+    const title = (await modal.locator("h1").textContent())?.trim() ?? "";
+
+    await modal.getByRole("button", { name: /复制名称/ }).click();
+    await page.waitForTimeout(600);
+
+    const copied = await page.evaluate(() => navigator.clipboard.readText());
+    report(
+        "the copy button puts the title on the clipboard",
+        copied.length > 0 ? null : "the clipboard was empty after pressing copy",
     );
     report(
-        "the full page offers a way back to the results",
-        direct.hasBackLink ? null : "no back control was found",
+        "the copy button reports what it copied",
+        copied === title ? null : `clipboard held "${copied}" while the title is "${title}"`,
+    );
+
+    /*
+     * The search button opens a new tab. The URL is read and the tab closed immediately, so the check does not depend
+     * on the search engine answering.
+     *
+     * The title is looked for anywhere in the opened URL rather than as the `wd` parameter, because a search engine may
+     * redirect a browser it does not recognise and carry the intended query inside a parameter of its own. That
+     * parameter is encoded a second time, so the URL is decoded twice before searching it. What is being checked is that
+     * the title reached the engine, not how the engine chose to answer.
+     */
+    const [searchTab] = await Promise.all([
+        page.context().waitForEvent("page", { timeout: 15000 }),
+        modal.getByRole("button", { name: /搜索该书/ }).click(),
+    ]);
+    const searchUrl = searchTab.url();
+    await searchTab.close();
+
+    let decoded;
+    try {
+        decoded = decodeURIComponent(decodeURIComponent(searchUrl));
+    } catch {
+        // A malformed escape sequence leaves the title unreadable, which this check treats as not carried.
+        decoded = searchUrl;
+    }
+    const carried = decoded.includes(title);
+    report(
+        "the search button opens the engine carrying the title",
+        carried ? null : `the title was not present in ${searchUrl.slice(0, 120)}`,
+    );
+
+    report(
+        "the record shows its facts as a description list",
+        (await modal.locator(".ant-descriptions-item").count()) >= 3
+            ? null
+            : "fewer than three facts were rendered",
+    );
+});
+
+/* ── The heading above the results names the ordering ─────────────────────── */
+
+await withPage(async (page) => {
+    await gotoAndSettle(page, "/");
+    const heading = page.locator("h1").first();
+
+    const before = (await heading.textContent())?.trim();
+    await page.getByText("字数最多", { exact: true }).click();
+    // One frame later: the click has been handled, the results have not arrived.
+    await page.waitForTimeout(120);
+    const during = (await heading.textContent())?.trim();
+    await page.waitForTimeout(3500);
+    const after = (await heading.textContent())?.trim();
+
+    report(
+        "the heading above the results follows the chosen ordering",
+        during === "字数最多" ? null : `the heading read "${during}" one frame after the click`,
+    );
+    report(
+        "the heading keeps the chosen ordering once the results arrive",
+        after === "字数最多" ? null : `the heading settled on "${after}"`,
+    );
+    report(
+        "the heading changed from its initial value",
+        before !== after ? null : `the heading stayed "${before}"`,
+    );
+});
+
+/* ── The wheel scrolls the page wherever the pointer is ───────────────────── */
+
+await withPage(async (page) => {
+    await gotoAndSettle(page, "/");
+    await page.waitForTimeout(600);
+
+    /*
+     * Checked over several parts of the page, because a wheel that works in one place and not another is the failure
+     * this guards against: a scroll container or a containment rule that covers part of the grid stops the wheel there
+     * while leaving it working over the parts that are themselves scrollable.
+     */
+    const spots = [
+        [300, 300, "the results grid"],
+        [720, 120, "the heading"],
+        [700, 760, "the search field"],
+    ];
+
+    const blocked = [];
+    for (const [x, y, where] of spots) {
+        await page.evaluate(() => window.scrollTo(0, 0));
+        await page.waitForTimeout(250);
+        await page.mouse.move(x, y);
+        await page.mouse.wheel(0, 800);
+        await page.waitForTimeout(500);
+        const scrolled = await page.evaluate(() => window.scrollY);
+        if (scrolled === 0) blocked.push(where);
+    }
+
+    report(
+        "the wheel scrolls the page wherever the pointer rests",
+        blocked.length === 0 ? null : `no scrolling happened over ${blocked.join(", ")}`,
     );
 });
 

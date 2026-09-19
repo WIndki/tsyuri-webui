@@ -1,6 +1,7 @@
 import { BookCover } from "@/components/book/book-cover";
 import { BookMetaList } from "@/components/book/book-meta-list";
 import { BookTags } from "@/components/book/book-tags";
+import { BookActions } from "@/components/book-detail/book-actions";
 import type { Book } from "@/lib/api/book";
 
 import styles from "./book-detail-view.module.css";
@@ -9,29 +10,20 @@ interface BookDetailViewProps {
     book: Book;
     /** Request time in epoch milliseconds, so the relative update label is stable. */
     now: number;
-    /**
-     * Optional control rendered above the record.
-     *
-     * The full page puts a back link here; the modal does not need one, because closing it returns to the list
-     * still visible behind it.
-     */
-    leading?: React.ReactNode;
 }
 
 /**
- * The detail of a book, as it appears both on its own page and in the modal.
+ * The detail of a book.
  *
- * A Server Component. One component for both presentations is what keeps them from drifting: two copies of this
- * markup would diverge, and the difference would only show in whichever was edited second.
+ * A Server Component, so the record is in the HTML rather than fetched after the dialog opens. The dialog around it is
+ * supplied by the intercepted route.
  *
- * The layout is a cover beside a list of facts, then the description in its own panel. That order follows how a
- * record is read — what it looks like, then what it is, then what it is about.
+ * The layout is a cover beside a list of facts, then the description in its own panel. That order follows how a record
+ * is read — what it looks like, then what it is, then what it is about.
  */
-export function BookDetailView({ book, now, leading }: BookDetailViewProps) {
+export function BookDetailView({ book, now }: BookDetailViewProps) {
     return (
         <article className={styles.view}>
-            {leading}
-
             <div className={styles.layout}>
                 <div className={styles.coverColumn}>
                     <BookCover
@@ -54,6 +46,8 @@ export function BookDetailView({ book, now, leading }: BookDetailViewProps) {
                     />
 
                     <BookMetaList book={book} now={now} />
+
+                    <BookActions title={book.title} />
                 </div>
             </div>
 

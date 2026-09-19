@@ -44,20 +44,3 @@ export function resolveCoverUrl(picUrl: string | null | undefined): string {
     // Not a URL we can use — better a placeholder than a broken image.
     return COVER_PLACEHOLDER;
 }
-
-/**
- * Hosts observed serving absolute cover URLs.
- *
- * Exported so `next.config.ts` and the runtime agree on one list: `next/image` rejects any
- * host missing from `images.remotePatterns`, so a newly appearing host should be added here
- * and in the config together.
- */
-export const OBSERVED_COVER_HOSTS = [
-    "e1.kuangxiangit.com",
-    "d1.kuangxiangit.com",
-    "c1.kuangxiangit.com",
-    "rss.sfacg.com",
-    "p9-reading-sign.fqnovelpic.com",
-    "p3-reading-sign.fqnovelpic.com",
-    "img.ciyuanji.com",
-] as const;

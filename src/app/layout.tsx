@@ -54,11 +54,11 @@ export const viewport: Viewport = {
  *
  * ## Why it declares a `modal` slot
  *
- * Clicking a result navigates to `/book/[id]`, and a parallel route named `modal` intercepts that navigation so the
- * record appears over the list rather than replacing it. A parallel route only exists where a layout declares it,
- * which is why the slot is here: any page that shows a book can open one, and no folders needed restructuring.
+ * A record opens over the results, which Next.js expresses as a *parallel route*: the record renders into a `modal` slot
+ * while the list stays in `children`. A parallel route only exists where a layout declares it, and both entry points to
+ * the list — `/` and `/search` — are below this layout, so the slot is declared once here rather than repeated per route.
  *
- * When nothing is intercepted the slot resolves to `default.tsx`, which renders `null`.
+ * When no record is open the slot resolves to `default.tsx`, which renders `null`.
  */
 export default function RootLayout({
     children,
@@ -89,8 +89,8 @@ export default function RootLayout({
                     <Providers>
                         <AppShell>{children}</AppShell>
                         {/*
-                         * Outside the shell, so the modal is not subject to the page's padding and can overlay the
-                         * whole viewport. It renders nothing unless a book navigation was intercepted.
+                         * Outside the shell, so the dialog is not subject to the page's padding and can overlay the whole
+                         * viewport. It renders nothing unless a record was opened.
                          */}
                         {modal}
                     </Providers>

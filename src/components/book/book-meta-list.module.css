@@ -1,33 +1,33 @@
+/*
+ * The book's factual attributes.
+ *
+ * antd's `Descriptions` supplies the structure, so only the parts it leaves to the caller are set here: a narrower
+ * label column than its default, and a size that matches the rest of the record.
+ */
+
 .list {
-    display: grid;
-    gap: 10px;
-    margin: 0;
-    padding: 0;
+    /*
+     * The label column holds two or three Chinese characters. antd sizes it by percentage, which reserves far more
+     * than that in a panel this wide and pushes every value away from its label.
+     */
+    --ant-descriptions-item-label-width: 5rem;
 }
 
-.row {
-    display: grid;
-    grid-template-columns: 5rem 1fr;
-    align-items: baseline;
-    gap: 12px;
+.list :global(.ant-descriptions-item-label),
+.list :global(.ant-descriptions-item-content) {
+    padding-bottom: 10px;
+    font-size: 13.5px;
 }
 
-.label {
-    font-size: 13px;
+.list :global(.ant-descriptions-item-label) {
     color: var(--foreground-muted);
-}
-
-.value {
-    margin: 0;
-    font-size: 14px;
-    color: var(--foreground);
 }
 
 /*
  * Inline metadata for a card footer.
  *
- * `white-space: nowrap` on each item is what keeps a value and its unit together: without it a
- * narrow column breaks "10.2万字" across two lines. The row can still wrap between items.
+ * `white-space: nowrap` on each item is what keeps a value and its unit together: without it a narrow column breaks
+ * "10.2万字" across two lines. The row can still wrap between items.
  */
 .inline {
     display: flex;

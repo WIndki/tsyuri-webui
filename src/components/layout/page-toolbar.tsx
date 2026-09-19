@@ -99,7 +99,8 @@ export function PageToolbar() {
                     icon={mode === "dark" ? <BulbFilled /> : <BulbOutlined />}
                     tooltip={mode === "dark" ? "切换到浅色" : "切换到深色"}
                     aria-label={mode === "dark" ? "切换到浅色主题" : "切换到深色主题"}
-                    onClick={toggleTheme}
+                    // The press target is handed over so the theme reveal spreads from the button that was pressed.
+                    onClick={(event) => toggleTheme(event.currentTarget)}
                 />
                 <FloatButton
                     icon={<QuestionOutlined />}

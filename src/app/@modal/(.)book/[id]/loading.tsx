@@ -9,5 +9,5 @@ import { BookDetailSkeleton } from "@/components/book-detail/book-detail-skeleto
  * No back link: the dialog closes back to the list it covers.
  */
 export default function InterceptedBookLoading() {
-    return <BookDetailSkeleton leading={false} />;
+    return <BookDetailSkeleton />;
 }

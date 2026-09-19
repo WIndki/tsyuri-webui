@@ -1,18 +1,25 @@
 /*
  * The book dialog.
  *
- * Only what antd's own dialog does not already handle. The padding is trimmed because the record brings its own
- * spacing, and the description panel runs to the dialog's edges so it reads as a section rather than as a card
- * inside a card.
+ * Only what antd's dialog does not already handle. The shell carries no title, so the header exists to hold the close
+ * button clear of the record and of the scrollbar.
  */
 
+.header {
+    /* Compact: the record's own heading is the title the visitor reads, so this row only has to hold the button. */
+    padding: 10px 16px !important;
+    margin-bottom: 0 !important;
+    border-bottom: 1px solid var(--border);
+}
+
 .body {
-    padding: 4px 0 0;
+    padding: 16px 20px 20px !important;
 }
 
 /* On a phone the dialog has the viewport, so the record gets the whole height instead of a scrolled box. */
 @media (max-width: 640px) {
     .body {
         max-height: none !important;
+        padding: 12px 14px 16px !important;
     }
 }

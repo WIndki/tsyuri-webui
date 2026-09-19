@@ -9,6 +9,7 @@ import {
     readAppliedTheme,
     type ThemeMode,
 } from "./preferences";
+import { revealThemeChange } from "./view-transition";
 
 /**
  * The theme, built on `useSyncExternalStore`.
@@ -52,14 +53,24 @@ function getServerThemeSnapshot(): ThemeMode | null {
 export function useThemeMode(): {
     mode: ThemeMode;
     resolved: boolean;
-    toggleTheme: () => void;
+    /**
+     * Switches the theme, revealing the change as a circle from the pressed control.
+     *
+     * Takes the control itself, because the reveal has to start where the press happened. Passing the element rather
+     * than a coordinate keeps the measurement inside the effect.
+     */
+    toggleTheme: (origin?: Element | null) => void;
 } {
     const mode = useSyncExternalStore(subscribe, getThemeSnapshot, getServerThemeSnapshot);
 
-    const toggleTheme = useCallback(() => {
-        // Read from the DOM rather than from the rendered value so a rapid double-click cannot act on
-        // a stale value between the setter and the re-render.
-        applyTheme(readAppliedTheme() === "dark" ? "light" : "dark");
+    const toggleTheme = useCallback((origin?: Element | null) => {
+        revealThemeChange(origin ?? null, () => {
+            /*
+             * Read from the DOM rather than from the rendered value, so a rapid second press cannot act on a stale
+             * value from the frame before the re-render.
+             */
+            applyTheme(readAppliedTheme() === "dark" ? "light" : "dark");
+        });
     }, []);
 
     return { mode: mode ?? DEFAULT_THEME_MODE, resolved: mode !== null, toggleTheme };

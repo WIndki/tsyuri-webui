@@ -1,0 +1,10 @@
+/*
+ * The record's actions.
+ *
+ * Placed after the facts rather than beside the heading, so the reading order is: what the book is, then what can be
+ * done with it.
+ */
+
+.actions {
+    margin-top: 2px;
+}

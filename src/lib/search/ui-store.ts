@@ -80,6 +80,14 @@ interface UiState {
 
     /** Facet values the visitor has chosen but the server has not confirmed. */
     proposed: Record<string, string | undefined>;
+    /**
+     * The ordering the visitor has chosen, before the server confirms it.
+     *
+     * The heading above the results names the ordering, and it sits where the sort control cannot reach: the heading
+     * is server-rendered from the committed query, while the control is a client island lower down. Without this they
+     * disagree for the length of the read, which is exactly when the visitor is looking at them.
+     */
+    proposedSort: string | null;
 
     /** The most recent failed read, or `null`. */
     failure: LastFailure | null;
@@ -88,6 +96,7 @@ interface UiState {
     endWait: () => void;
     propose: (values: Record<string, string | undefined>) => void;
     clearProposed: () => void;
+    proposeSort: (sort: string | null) => void;
     report: (failure: LastFailure) => void;
     dismissFailure: () => void;
     /** Runs the action registered through `setRetryAction`. */
@@ -100,6 +109,7 @@ export const useUiStore = create<UiState>((set, get) => ({
     expectedCount: 0,
     payloadArrived: false,
     proposed: {},
+    proposedSort: null,
     failure: null,
 
     beginWait: (expectedCount) => {
@@ -149,9 +159,12 @@ export const useUiStore = create<UiState>((set, get) => ({
     propose: (values) => set((state) => ({ proposed: { ...state.proposed, ...values } })),
 
     clearProposed: () => {
-        if (Object.keys(get().proposed).length === 0) return;
-        set({ proposed: {} });
+        const state = get();
+        if (Object.keys(state.proposed).length === 0 && state.proposedSort === null) return;
+        set({ proposed: {}, proposedSort: null });
     },
+
+    proposeSort: (sort) => set({ proposedSort: sort }),
 
     report: (failure) => set({ failure }),
 

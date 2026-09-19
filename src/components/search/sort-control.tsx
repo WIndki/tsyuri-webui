@@ -25,17 +25,22 @@ interface SortControlProps {
  */
 export function SortControl({ query }: SortControlProps) {
     const { applyPatch } = useSearchNavigation();
-    const isWaiting = useUiStore((state) => state.isWaiting);
+    const proposedSort = useUiStore((state) => state.proposedSort);
+    const proposeSort = useUiStore((state) => state.proposeSort);
 
     return (
         <Space size={8} wrap>
             <Text type="secondary">排序</Text>
             <Segmented
-                value={query.sort}
-                // Disabled while a read is in flight, so a second ordering cannot be requested before the first
-                // arrives and leave the visitor unsure which one the results reflect.
-                disabled={isWaiting}
-                onChange={(value) => applyPatch(query, { sort: value as SortValue })}
+                /*
+                 * The proposed ordering while one is outstanding, so the control and the heading above the results name
+                 * the same thing. Both read the same value, so they cannot disagree.
+                 */
+                value={proposedSort ?? query.sort}
+                onChange={(value) => {
+                    proposeSort(String(value));
+                    applyPatch(query, { sort: value as SortValue });
+                }}
                 options={SORT_OPTIONS.map(({ value, label }) => ({ value, label }))}
                 aria-label="结果排序"
             />

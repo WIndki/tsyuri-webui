@@ -81,7 +81,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
              */}
             <DisplayModePreference />
 
-            <ResultsSummary page={page} query={query} />
+            <ResultsSummary total={page.total} page={page.page} query={query} />
 
             {error ? (
                 <p role="alert" className={styles.error}>
