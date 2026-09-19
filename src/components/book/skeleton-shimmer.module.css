@@ -1,0 +1,46 @@
+/*
+ * Shimmer for placeholder blocks.
+ *
+ * Written as CSS rather than composed from antd's `Skeleton` because antd's skeleton parts are compound
+ * sub-components (`Skeleton.Node`, `Skeleton.Image`, `Skeleton.Input`), and those are `undefined` in a
+ * Server Component — antd marks its modules `"use client"`, so a Server Component only receives the
+ * top-level export. Route-level `loading.tsx` files are Server Components, so they cannot reach them.
+ *
+ * The effect is a highlight that sweeps across the element, which is the same visual as antd's `active`
+ * skeleton. Applied to any element that has a size and the `.block` class.
+ */
+
+@keyframes skeleton-sweep {
+    from {
+        background-position: 200% 0;
+    }
+
+    to {
+        background-position: -200% 0;
+    }
+}
+
+.block {
+    background-color: var(--surface-hover);
+    background-image: linear-gradient(
+        90deg,
+        transparent 0%,
+        var(--border) 50%,
+        transparent 100%
+    );
+    background-repeat: no-repeat;
+    background-size: 200% 100%;
+    border-radius: 6px;
+    animation: skeleton-sweep 1.4s ease-in-out infinite;
+}
+
+/*
+ * Under reduced motion the sweep stops and the block keeps a flat fill, so the placeholder still reads
+ * as "content is coming" without moving.
+ */
+@media (prefers-reduced-motion: reduce) {
+    .block {
+        background-image: none;
+        animation: none;
+    }
+}

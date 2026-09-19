@@ -10,6 +10,7 @@ import {
     UPDATE_PERIOD_OPTIONS,
     WORD_COUNT_STEPS,
 } from "@/lib/search/options";
+import type { FacetValues } from "@/lib/search/query";
 
 const { Text } = Typography;
 
@@ -18,17 +19,9 @@ const ANY = "__any__";
 
 interface FilterControlsProps {
     /** Current facet values, already validated. `undefined` means "no constraint". */
-    values: {
-        tag?: string | undefined;
-        source?: string | undefined;
-        bookStatus?: string | undefined;
-        purity?: string | undefined;
-        updatePeriod?: string | undefined;
-        wordCountMin?: string | undefined;
-        wordCountMax?: string | undefined;
-    };
+    values: FacetValues;
     /** Applies a patch; `undefined` values clear the corresponding filter. */
-    onChange: (patch: Record<string, string | undefined>) => void;
+    onChange: (patch: Partial<FacetValues>) => void;
 }
 
 /** Builds `不限` + an option table into a `Select`-ready list. */

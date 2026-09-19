@@ -1,0 +1,118 @@
+/*
+ * Route-level loading placeholder for the book detail page.
+ *
+ * Dimensions match `page.module.css`, so the real page replaces this without moving anything.
+ */
+
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-top: 8px;
+}
+
+.back {
+    width: 104px;
+    height: 32px;
+}
+
+.layout {
+    display: grid;
+    gap: 28px;
+    grid-template-columns: 260px minmax(0, 1fr);
+    align-items: start;
+}
+
+.cover {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    border-radius: var(--radius);
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+}
+
+.title {
+    width: 70%;
+    height: 34px;
+}
+
+.author {
+    width: 30%;
+    height: 20px;
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.tag {
+    width: 68px;
+    height: 22px;
+}
+
+.meta {
+    display: grid;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.metaRow {
+    display: grid;
+    grid-template-columns: 5rem 1fr;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.metaLabel {
+    width: 100%;
+    height: 16px;
+}
+
+.metaValue {
+    width: 40%;
+    height: 16px;
+}
+
+.description {
+    padding: 20px 22px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.sectionHeading {
+    width: 4rem;
+    height: 20px;
+    margin-bottom: 16px;
+}
+
+/* Stands in for the run of description lines. */
+.line {
+    width: 100%;
+    height: 15px;
+    margin-bottom: 12px;
+}
+
+.line:last-child {
+    width: 62%;
+    margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+    .layout {
+        gap: 18px;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cover {
+        max-width: 200px;
+        margin: 0 auto;
+    }
+}

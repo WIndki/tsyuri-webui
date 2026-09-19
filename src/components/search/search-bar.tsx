@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Button, Input } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 
+import { useUiStore } from "@/lib/search/ui-store";
 import { useSearchNavigation } from "@/lib/search/use-search-navigation";
 import type { SearchQuery } from "@/lib/search/query";
 
@@ -23,7 +24,14 @@ interface SearchBarProps {
  * cached requests and an unusable back button.
  */
 export function SearchBar({ query }: SearchBarProps) {
-    const { applyPatch, isPending } = useSearchNavigation();
+    const { applyPatch } = useSearchNavigation();
+    /*
+     * The button reports the shared wait rather than a `useTransition` flag of its own.
+     *
+     * `useTransition` clears when the router commits the new URL, about a second before the results arrive, so
+     * the spinner would stop while the page was still loading. The shared wait ends when the payload lands.
+     */
+    const isWaiting = useUiStore((state) => state.isWaiting);
     const [draft, setDraft] = useState(query.keyword);
 
     /*
@@ -74,7 +82,7 @@ export function SearchBar({ query }: SearchBarProps) {
                 type="primary"
                 size="large"
                 htmlType="submit"
-                loading={isPending}
+                loading={isWaiting}
                 disabled={unchanged}
                 className={styles.submit}
             >

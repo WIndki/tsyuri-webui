@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { BookCover } from "@/components/book/book-cover";
 import { BookMetaInline } from "@/components/book/book-meta-list";
+import { LinkPendingHint } from "@/components/book/link-pending-hint";
 import type { Book } from "@/lib/api/book";
 import { truncate } from "@/lib/format";
 
@@ -20,6 +21,15 @@ interface BookCardProps {
     from: string;
     /** Set on the first row so the browser fetches those covers eagerly. */
     priority?: boolean;
+    /**
+     * Play the entrance animation.
+     *
+     * Set for cards that appear as a result of a visitor action — a filter change, a new page,
+     * appended infinite-scroll pages — so the appearance is legible as a change. Left off for the
+     * first server-rendered page, which is already painted when the island hydrates; replaying the
+     * animation there would read as a flicker on load.
+     */
+    animate?: boolean;
 }
 
 /**
@@ -36,11 +46,11 @@ interface BookCardProps {
  * The cover is decorative (`alt=""`) because the title directly below it is the accessible name for
  * the same destination; announcing the title twice would be noise.
  */
-export function BookCard({ book, now, from, priority = false }: BookCardProps) {
+export function BookCard({ book, now, from, priority = false, animate = false }: BookCardProps) {
     const href = `/book/${book.id}?title=${encodeURIComponent(book.title)}&from=${encodeURIComponent(from)}`;
 
     return (
-        <article className={styles.card}>
+        <article className={animate ? `${styles.card} ${styles.enter}` : styles.card}>
             <BookCover
                 src={book.coverUrl}
                 alt=""
@@ -52,6 +62,11 @@ export function BookCard({ book, now, from, priority = false }: BookCardProps) {
                 <h3 className={styles.title}>
                     <Link href={href} className={styles.link} title={book.title}>
                         {truncate(book.title, 44)}
+                        {/*
+                         * Reads the pending state of this link. It has to be a child of the `Link`, which
+                         * is why it is passed as children rather than rendered beside the card.
+                         */}
+                        <LinkPendingHint />
                     </Link>
                 </h3>
 

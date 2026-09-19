@@ -1,6 +1,7 @@
 import { Suspense, type ReactNode } from "react";
 
 import { PageToolbar } from "@/components/layout/page-toolbar";
+import { SearchFailureModal } from "@/components/layout/search-failure-modal";
 
 import styles from "./app-shell.module.css";
 
@@ -41,6 +42,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Suspense fallback={null}>
                 <PageToolbar />
             </Suspense>
+
+            {/*
+             * Mounted once so every failed read is reported the same way, wherever it happened: the
+             * initial render, a client navigation, or an appended page from the Server Action. It
+             * renders nothing until a failure is reported.
+             */}
+            <SearchFailureModal />
         </div>
     );
 }

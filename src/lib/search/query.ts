@@ -57,7 +57,26 @@ import {
     type DisplayMode,
 } from "@/lib/theme/display-mode";
 
-export interface SearchQuery {
+/**
+ * The facet portion of a query: everything the filter panel can change.
+ *
+ * Named separately from `SearchQuery` because `FilterControls` operates on these fields only, and a
+ * function that takes the whole query could silently reach for `keyword` or `page`. `SearchQuery`
+ * satisfies this type structurally, so a query can be passed directly.
+ */
+export interface FacetValues {
+    /** Single tag filter. `undefined` = no constraint. */
+    tag?: string;
+    /** Single source filter. `undefined` = no constraint. */
+    source?: string;
+    bookStatus?: string;
+    purity?: string;
+    updatePeriod?: string;
+    wordCountMin?: string;
+    wordCountMax?: string;
+}
+
+export interface SearchQuery extends FacetValues {
     /** Free-text title/description search. Trimmed; empty means "no keyword". */
     keyword: string;
     /** 1-based page number. */
@@ -74,15 +93,6 @@ export interface SearchQuery {
      * The visitor's first choice is remembered in `localStorage` and only used to redirect.
      */
     display: DisplayMode;
-    /** Single tag filter. `undefined` = no constraint. */
-    tag?: string;
-    /** Single source filter. `undefined` = no constraint. */
-    source?: string;
-    bookStatus?: string;
-    purity?: string;
-    updatePeriod?: string;
-    wordCountMin?: string;
-    wordCountMax?: string;
 }
 
 /** Shape of the untrusted input we are willing to parse. */
@@ -263,15 +273,15 @@ export function hasActiveFilters(query: SearchQuery): boolean {
 }
 
 /** Number of facet filters currently applied, for the collapsed-panel badge. */
-export function countActiveFilters(query: SearchQuery): number {
+export function countActiveFilters(facets: FacetValues): number {
     return [
-        query.tag,
-        query.source,
-        query.bookStatus,
-        query.purity,
-        query.updatePeriod,
-        query.wordCountMin,
-        query.wordCountMax,
+        facets.tag,
+        facets.source,
+        facets.bookStatus,
+        facets.purity,
+        facets.updatePeriod,
+        facets.wordCountMin,
+        facets.wordCountMax,
     ].filter((value) => value !== undefined).length;
 }
 

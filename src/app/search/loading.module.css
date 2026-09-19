@@ -1,0 +1,54 @@
+/*
+ * Route-level loading placeholder.
+ *
+ * Sized to match `page.module.css` and the components it stands in for, so the real page replaces it
+ * without moving anything. The blocks use `--surface-hover`, the same fill the cards use behind a
+ * cover that has not loaded, which keeps the placeholder visually part of the same palette.
+ */
+
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.searchBar {
+    height: 66px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+/* Header row plus five facet rows, matching the collapsed panel's height. */
+.panel {
+    height: 76px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.summary {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.heading {
+    width: 7rem;
+    height: 28px;
+    background: var(--surface-hover);
+    border-radius: 6px;
+}
+
+.count {
+    width: 5rem;
+    height: 18px;
+    background: var(--surface-hover);
+    border-radius: 6px;
+}
+
+@media (max-width: 640px) {
+    .searchBar {
+        height: 58px;
+    }
+}

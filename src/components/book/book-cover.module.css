@@ -5,8 +5,8 @@
        relying on the image's intrinsic size is what stops the grid reflowing as covers load. */
     aspect-ratio: 3 / 4;
     overflow: hidden;
-    border-radius: 4px;
-    background: var(--background-elevated);
+    /* Shown while the image loads and behind a cover that failed to decode. */
+    background: var(--surface-hover);
 }
 
 .image {

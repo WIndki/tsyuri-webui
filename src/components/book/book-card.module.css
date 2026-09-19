@@ -21,6 +21,76 @@
     transform: translateY(-2px);
 }
 
+/*
+ * Entrance animation for a card that arrives as the result of a visitor action.
+ *
+ * A short rise with a fade reads as "these are the new results" without drawing attention to each card
+ * individually. The stagger is `nth-child` rather than an inline `animation-delay`, so the delay ships
+ * in the stylesheet and is identical on the server and the client; an inline style computed from the
+ * index would differ between the two and produce a hydration mismatch.
+ */
+.enter {
+    animation: card-enter var(--ant-motion-duration-mid, 0.2s)
+        var(--ant-motion-ease-out-circ, ease-out) both;
+}
+
+.enter:nth-child(2) {
+    animation-delay: 25ms;
+}
+.enter:nth-child(3) {
+    animation-delay: 50ms;
+}
+.enter:nth-child(4) {
+    animation-delay: 75ms;
+}
+.enter:nth-child(5) {
+    animation-delay: 100ms;
+}
+.enter:nth-child(6) {
+    animation-delay: 125ms;
+}
+.enter:nth-child(7) {
+    animation-delay: 150ms;
+}
+.enter:nth-child(8) {
+    animation-delay: 175ms;
+}
+.enter:nth-child(9) {
+    animation-delay: 200ms;
+}
+.enter:nth-child(10) {
+    animation-delay: 225ms;
+}
+.enter:nth-child(11) {
+    animation-delay: 250ms;
+}
+.enter:nth-child(12) {
+    animation-delay: 275ms;
+}
+
+@keyframes card-enter {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/*
+ * The animation is decoration, so it goes away when the visitor has asked for less motion. The global
+ * reduced-motion rule shortens every duration; `animation: none` here also removes the stagger, which
+ * would otherwise leave the last card in a row invisible for a quarter of a second.
+ */
+@media (prefers-reduced-motion: reduce) {
+    .enter {
+        animation: none;
+    }
+}
+
 .coverLink {
     display: block;
 }

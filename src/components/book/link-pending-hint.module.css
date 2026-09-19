@@ -1,0 +1,64 @@
+/*
+ * The pending hint for a card whose detail page is being fetched.
+ *
+ * A line that fills from the left while the navigation is in flight. It sits inside the card, along
+ * the top edge, so it reads as belonging to that card rather than to the page as a whole.
+ */
+
+.hint {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    display: block;
+    width: 100%;
+    height: 2px;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--ant-motion-duration-fast, 0.1s) ease;
+}
+
+/* Always in the tree, so showing it cannot move anything. */
+.hint::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left center;
+}
+
+.active {
+    opacity: 1;
+}
+
+/*
+ * The fill runs on a loop rather than tracking real progress, because the fetch reports only
+ * completion. It is deliberately slow enough not to read as a percentage.
+ */
+.active::after {
+    animation: hint-fill 1.1s var(--ant-motion-ease-in-out, ease-in-out) infinite;
+}
+
+@keyframes hint-fill {
+    0% {
+        transform: scaleX(0);
+    }
+
+    50% {
+        transform: scaleX(0.7);
+    }
+
+    100% {
+        transform: scaleX(1);
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .active::after {
+        animation: none;
+        transform: scaleX(1);
+    }
+}
