@@ -6,6 +6,7 @@ import { Badge, Button, Collapse, Typography } from "antd";
 import { FilterOutlined } from "@ant-design/icons";
 
 import { FilterControls } from "@/components/search/filter-controls";
+import { SortControl } from "@/components/search/sort-control";
 import { clearedFilters, countActiveFilters, type FacetValues, type SearchQuery } from "@/lib/search/query";
 import { useUiStore } from "@/lib/search/ui-store";
 import { useSearchNavigation } from "@/lib/search/use-search-navigation";
@@ -29,14 +30,22 @@ interface SearchPanelProps {
  * control reflects a click immediately. The proposals are kept out of the URL so the address bar never
  * claims a result set that has not loaded.
  *
- * Open by default because the facets are the reason this interface exists, but collapsible so a visitor
- * browsing the default ordering can reclaim the vertical space. The badge reports how many constraints are
- * active, which is what makes the collapsed state readable.
+ * Collapsed by default, because the panel is docked and its height is height the results lose. The badge on
+ * the header reports how many constraints are active, which is what keeps a collapsed panel readable.
  */
 export function SearchPanel({ query }: SearchPanelProps) {
     const { applyPatch } = useSearchNavigation();
     const proposed = useUiStore((state) => state.proposed);
-    const [open, setOpen] = useState(true);
+
+    /*
+     * Collapsed to begin with.
+     *
+     * The panel is docked to the bottom, so its height is height the results do not get. Expanded, the six rows
+     * of facets take about 410px of a 900px viewport, which leaves the grid barely half the screen. The badge on
+     * the header reports how many constraints are active, so a collapsed panel still says whether anything is
+     * narrowing the result set.
+     */
+    const [open, setOpen] = useState(false);
 
     /*
      * The rendered query, with any outstanding proposals applied.
@@ -53,6 +62,15 @@ export function SearchPanel({ query }: SearchPanelProps) {
 
     return (
         <div className={styles.panel}>
+            {/*
+             * Ordering sits above the collapsible facets and stays visible when they are collapsed, because it is
+             * used more often than any single facet and it is not a constraint: it changes the order of the
+             * results, not which results there are.
+             */}
+            <div className={styles.sort}>
+                <SortControl query={query} />
+            </div>
+
             <Collapse
                 ghost
                 activeKey={open ? ["filters"] : []}

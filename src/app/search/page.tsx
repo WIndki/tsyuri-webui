@@ -1,13 +1,9 @@
-import { Suspense } from "react";
-
 import type { Metadata } from "next";
 
 import { ResultsIsland } from "@/components/book/results-island";
 import { DisplayModePreference } from "@/components/search/display-mode-preference";
 import { EmptyResults } from "@/components/search/empty-results";
 import { ResultsSummary } from "@/components/search/results-summary";
-import { SearchBar } from "@/components/search/search-bar";
-import { SearchPanel } from "@/components/search/search-panel";
 import { emptyBookPage } from "@/lib/api/book";
 import { BookIndexError, userMessageFor } from "@/lib/api/errors";
 import { parseSearchQuery, toSearchHref, type RawSearchParams } from "@/lib/search/query";
@@ -81,15 +77,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         <div className={styles.page}>
             {/*
              * Redirects once to the visitor's preferred display mode when the URL does not state one.
-             * Rendered first because it changes the URL the rest of the controls read.
+             * Rendered first because it changes the URL the rest of the page reads.
              */}
             <DisplayModePreference />
-
-            <SearchBar query={query} />
-
-            <Suspense fallback={null}>
-                <SearchPanel query={query} />
-            </Suspense>
 
             <ResultsSummary page={page} query={query} />
 

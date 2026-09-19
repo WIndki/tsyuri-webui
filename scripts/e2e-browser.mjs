@@ -47,6 +47,29 @@ const renderedIds = (page) =>
 async function gotoAndSettle(page, path) {
     await page.goto(`${BASE}${path}`, { waitUntil: "domcontentloaded" });
     await page.waitForSelector("article", { timeout: 30000 });
+    await showFacets(page);
+}
+
+/**
+ * Expands the facet section of the docked panel.
+ *
+ * The facets start collapsed, because the panel is docked and its height is height the results lose. Any check
+ * that touches them has to open the section first. The click is skipped when it is already open, so the helper is
+ * safe to call unconditionally.
+ */
+async function showFacets(page) {
+    const container = page.locator(".ant-collapse-item");
+    await container.waitFor({ state: "visible", timeout: 20000 });
+
+    const isOpen = await container.evaluate((node) =>
+        node.classList.contains("ant-collapse-item-active"),
+    );
+    if (isOpen) return;
+
+    // The header rather than the label text, because the accessible name contains the same words and would
+    // match more than one element.
+    await page.locator(".ant-collapse-header").click();
+    await page.waitForTimeout(400);
 }
 
 /**
@@ -222,6 +245,40 @@ await withPage(async (page) => {
         infiniteCards.length > 0 && (await renderedIds(page)).length > 0
             ? null
             : "one of the modes rendered no books",
+    );
+});
+
+/* ── Ordering is available and changes the result order ───────────────────── */
+
+await withPage(async (page) => {
+    await gotoAndSettle(page, "/");
+    const before = await renderedIds(page);
+
+    /*
+     * Ordering lives outside the collapsible facet section, because it is used more often than any single facet
+     * and it is not a constraint. It is therefore reachable without opening the facets, which is what this checks
+     * as much as the ordering itself.
+     */
+    const sort = page.getByLabel("结果排序");
+    await sort.waitFor({ state: "visible", timeout: 15000 });
+    const options = await sort.locator(".ant-segmented-item-label").allTextContents();
+
+    await page.getByText("字数最多", { exact: true }).click();
+    await page.waitForFunction(() => window.location.search.includes("sort=word_count"), undefined, {
+        timeout: 15000,
+    });
+    await page.waitForTimeout(4000);
+
+    const after = await renderedIds(page);
+    report(
+        "ordering is offered with every upstream sort option",
+        options.length === 4 ? null : `found ${options.length} options: ${options.join(", ")}`,
+    );
+    report(
+        "choosing an ordering re-sorts the list",
+        after.length > 0 && after.join() !== before.join()
+            ? null
+            : "the list did not change after choosing 字数最多",
     );
 });
 

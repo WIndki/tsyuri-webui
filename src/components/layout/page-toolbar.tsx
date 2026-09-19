@@ -61,10 +61,21 @@ export function PageToolbar() {
 
     return (
         <>
+            {/*
+             * Offset by the docked panel's height, published as `--panel-height` by `BottomPanelDock`.
+             *
+             * Both are fixed to the bottom and both sit on the right, so without the offset the tools land on
+             * top of the facet header — visible on a phone, where the panel is tall enough to reach them. The
+             * offset is the one channel from a client island to another that does not go through props.
+             */}
             <FloatButton.Group
                 trigger="click"
                 shape="circle"
-                style={{ right: 16, bottom: 32, zIndex: 100 }}
+                style={{
+                    right: 16,
+                    bottom: "calc(var(--panel-height, 0px) + 16px)",
+                    zIndex: 101,
+                }}
                 icon={<ArrowUpOutlined aria-label="工具菜单" />}
             >
                 <FloatButton.BackTop

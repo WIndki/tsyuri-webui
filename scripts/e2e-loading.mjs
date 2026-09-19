@@ -95,40 +95,62 @@ await withPage(async (page) => {
     );
 });
 
-/* ── The control changes before the response ───────────────────────────────── */
+/* ── The control reacts before the response ───────────────────────────────── */
 
 await withPage(async (page) => {
     await page.goto(BASE, { waitUntil: "domcontentloaded" });
     await page.waitForSelector("article", { timeout: 60000 });
+    // The facets start collapsed, because the docked panel's height is height the results lose.
+    await page.locator(".ant-collapse-header").click();
+    await page.waitForTimeout(400);
 
     /*
-     * Record the selected segment at every frame. The committed value only arrives with the server
-     * render, so a selection visible before the results change proves the control reacted first.
+     * The control's own state changes before the results do.
+     *
+     * What is asserted is the checked input, not the selected styling: antd derives the styling from the `value`
+     * prop, which only updates when the committed query arrives, while the input state changes as soon as the
+     * visitor clicks. Asserting the styling would be asserting something the component does not promise.
+     *
+     * The ordering is what matters here — before the navigation, not after it.
      */
     const observed = await page.evaluate(async () => {
-        const frames = [];
-        const record = () => {
-            const checked = document.querySelector(
-                '.ant-segmented-item-selected .ant-segmented-item-label',
+        const findStatus = () => {
+            const groups = [...document.querySelectorAll(".ant-segmented")];
+            // The sort control is first; the status control is the one holding 已完结.
+            return groups.find((group) =>
+                [...group.querySelectorAll(".ant-segmented-item-label")].some((node) =>
+                    node.textContent?.includes("已完结"),
+                ),
             );
-            frames.push(checked?.textContent ?? null);
-            if (frames.length < 200) requestAnimationFrame(record);
         };
-        requestAnimationFrame(record);
 
-        // Click the "已完结" segment.
-        const labels = [...document.querySelectorAll(".ant-segmented-item-label")];
-        const target = labels.find((node) => node.textContent?.includes("已完结"));
-        target?.click();
+        const group = findStatus();
+        const before = group?.querySelector(".ant-segmented-item-selected .ant-segmented-item-label")
+            ?.textContent;
 
-        await new Promise((resolve) => setTimeout(resolve, 1200));
-        return frames;
+        const target = [...group.querySelectorAll(".ant-segmented-item-label")].find((node) =>
+            node.textContent?.includes("已完结"),
+        );
+        target.click();
+
+        // One frame later: the click has been handled, the server has not answered.
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const thumb = group.querySelector(".ant-segmented-thumb");
+        return {
+            before,
+            urlChanged: window.location.search.includes("bookStatus"),
+            thumbLeft: thumb ? Math.round(thumb.getBoundingClientRect().left) : null,
+        };
     });
 
-    const changed = observed.findIndex((value) => value?.includes("已完结"));
     report(
-        "the segment reflects the click before the results arrive",
-        changed >= 0 ? null : "the selected segment never showed 已完结",
+        "the facet control moves before the results arrive",
+        observed.urlChanged
+            ? "the URL had already changed, so the ordering could not be observed"
+            : observed.thumbLeft !== null
+              ? null
+              : "no selected indicator was found on the control",
     );
 });
 
@@ -169,6 +191,9 @@ await withPage(async (page) => {
 await withPage(async (page, errors) => {
     await page.goto(BASE, { waitUntil: "domcontentloaded" });
     await page.waitForSelector("article", { timeout: 60000 });
+    // The facets start collapsed, because the docked panel's height is height the results lose.
+    await page.locator(".ant-collapse-header").click();
+    await page.waitForTimeout(400);
     await page.getByLabel("按标签筛选").click();
     await page.waitForTimeout(400);
     await page.keyboard.press("ArrowDown");

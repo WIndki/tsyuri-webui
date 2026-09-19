@@ -1,5 +1,6 @@
 import { Suspense, type ReactNode } from "react";
 
+import { BottomPanelDock } from "@/components/layout/bottom-panel-dock";
 import { PageToolbar } from "@/components/layout/page-toolbar";
 import { SearchFailureModal } from "@/components/layout/search-failure-modal";
 
@@ -32,6 +33,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     return (
         <div className={styles.shell}>
             <main className={styles.content}>{children}</main>
+
+            {/*
+             * The search and facet controls, docked to the bottom. Held by the shell rather than by the search
+             * page so they stay in place while a book is open, which is what makes them a tool rather than part
+             * of one screen.
+             */}
+            <BottomPanelDock />
+
             {/*
              * `PageToolbar` calls `useSearchParams` to read the current display mode. Next.js treats
              * that as a request to opt out of static prerendering, so without a boundary above it

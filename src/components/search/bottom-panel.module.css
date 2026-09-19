@@ -1,0 +1,60 @@
+/*
+ * The docked control panel.
+ *
+ * Fixed to the bottom and centred, following the layout the previous version used. What it adds is that the page
+ * reserves the panel's height, so the end of the results list — the "load more" control and its spinner — scrolls
+ * above the panel rather than behind it.
+ */
+
+.dock {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    /* The panel must not swallow clicks on the margin beside it, or the last row of results becomes
+       unreachable on a wide screen. */
+    pointer-events: none;
+}
+
+.panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    /* Narrower than the results grid on purpose: the controls are a focused tool, and a search field spanning
+       1400px reads as a page-wide band rather than as a panel. */
+    max-width: 860px;
+    max-height: 70vh;
+    padding: 12px clamp(8px, 2vw, 16px) calc(12px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+    /* Restores interaction inside the panel, which the dock switched off for its margins. */
+    pointer-events: auto;
+    background: color-mix(in srgb, var(--background) 88%, transparent);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+}
+
+/* Paired with the raised surface the controls already draw, so the panel reads as floating above the grid. */
+.panel > :global(*) {
+    box-shadow: var(--shadow-card);
+}
+
+@media (min-width: 900px) {
+    .panel {
+        margin-bottom: 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-raised);
+    }
+}
+
+@media (max-width: 640px) {
+    .panel {
+        gap: 8px;
+        padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+        max-height: 62vh;
+    }
+}

@@ -45,10 +45,16 @@ export function useSearchNavigation() {
     /**
      * Applies a facet change.
      *
-     * Resets to page 1, because keeping the current page while the facets change routinely lands past the end
-     * of the new result set, which renders as an empty page with no explanation.
+     * Resets to page 1, because keeping the current page while the facets change routinely lands past the end of
+     * the new result set, which renders as an empty page with no explanation.
      *
-     * The patch is also proposed, so the control reflects it immediately.
+     * The patch is proposed before navigating, so the control can render the chosen value without waiting for the
+     * server. The store update lands within the transition that `router.push` starts.
+     *
+     * Measured: antd's controls already provide the feedback that matters without this — the segmented thumb and
+     * the checkbox state move within a frame of the click, because antd animates them from its own value. What
+     * waits for the server is the selected styling derived from `value`. Forcing that to change first was tried
+     * with a synchronous render and made no visible difference, so it was removed rather than kept for nothing.
      */
     const applyPatch = useCallback(
         (query: SearchQuery, patch: Partial<SearchQuery>) => {

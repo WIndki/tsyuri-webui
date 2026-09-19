@@ -5,6 +5,34 @@
     box-shadow: var(--shadow-card);
 }
 
+/*
+ * Ordering, above the collapsible facets.
+ *
+ * Separated by a rule so the two read as different kinds of control: ordering changes the sequence of results, the
+ * facets below decide which results there are.
+ *
+ * Stacked on a phone and side by side from `sm` up. Four ordering options beside a label do not fit 390px at a
+ * readable size; giving the control the full width does. Horizontal scrolling inside the control was tried and
+ * rejected: it does not engage against antd's own layout, and `overflow` on the control interferes with the
+ * moving thumb.
+ */
+.sort {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+@media (min-width: 576px) {
+    .sort {
+        flex-direction: row;
+        gap: 10px;
+        align-items: center;
+    }
+}
+
 .label {
     display: inline-flex;
     align-items: center;
@@ -22,4 +50,10 @@
 
 .clear {
     padding-inline: 0;
+}
+
+@media (max-width: 640px) {
+    .sort {
+        padding: 8px 10px;
+    }
 }

@@ -12,10 +12,20 @@
     max-width: var(--shell-max-width);
     padding: 20px var(--shell-gutter) 48px;
     margin: 0 auto;
+    /*
+     * Reserved space for the docked control panel, published by `BottomPanelDock` and updated whenever the panel
+     * changes height.
+     *
+     * Without it the panel covers the end of the results list, where the "load more" control and its spinner sit,
+     * and those become unreachable — the one failure mode a fixed panel has. The 48px above is the gap between
+     * the last row and the panel, and `max()` keeps a sensible minimum before the panel has been measured.
+     */
+    padding-bottom: max(48px, calc(var(--panel-height, 0px) + 32px));
 }
 
 @media (max-width: 640px) {
     .content {
         padding: 12px 12px 40px;
+        padding-bottom: max(40px, calc(var(--panel-height, 0px) + 24px));
     }
 }
