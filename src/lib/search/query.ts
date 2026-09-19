@@ -152,18 +152,30 @@ export function parseSearchQuery(raw: RawSearchParams = {}): SearchQuery {
     const wordCountMin = oneOf(single(raw, "wordCountMin"), WORD_COUNT_VALUES);
     const wordCountMax = oneOf(single(raw, "wordCountMax"), WORD_COUNT_VALUES);
 
+    const display: DisplayMode = (() => {
+        const value = single(raw, "display");
+        return isDisplayMode(value) ? value : DEFAULT_DISPLAY_MODE;
+    })();
+
+    const requestedPage = clampInt(single(raw, "curr"), { ...PAGE_BOUNDS, fallback: 1 });
+
     return {
         keyword: (single(raw, "keyword") ?? "").trim().slice(0, MAX_KEYWORD_LENGTH),
-        page: clampInt(single(raw, "curr"), { ...PAGE_BOUNDS, fallback: 1 }),
+        /*
+         * Infinite scroll has no page to restore.
+         *
+         * It accumulates pages, so a `curr` in the URL names a depth the visitor was shown by scrolling rather than a
+         * place they asked to be. Reading it would seed the accumulation part-way in — a return to the list would begin
+         * at whatever page had been reached last, with the pages before it missing. Forcing one here means every
+         * consumer, on both sides, agrees that an accumulation starts at the first page.
+         */
+        page: display === "pagination" ? requestedPage : 1,
         pageSize: clampInt(single(raw, "limit"), {
             ...PAGE_SIZE_BOUNDS,
             fallback: DEFAULT_PAGE_SIZE,
         }),
         sort: (oneOf(single(raw, "sort"), SORT_VALUES) ?? DEFAULT_SORT) as SortValue,
-        display: (() => {
-            const value = single(raw, "display");
-            return isDisplayMode(value) ? value : DEFAULT_DISPLAY_MODE;
-        })(),
+        display,
         tag: oneOf(single(raw, "tag"), TAG_VALUES),
         source: oneOf(single(raw, "source"), SOURCE_VALUES),
         bookStatus: oneOf(single(raw, "bookStatus"), BOOK_STATUS_VALUES),

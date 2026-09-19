@@ -136,10 +136,15 @@ await withPage(async (page) => {
 /* ── Pagination must show the page it names ────────────────────────────────── */
 
 await withPage(async (page) => {
-    await gotoAndSettle(page, "/");
+    /*
+     * Pagination mode explicitly: a page number only selects a page where there are pages. Infinite scroll accumulates,
+     * so it starts at the first page whatever `curr` says.
+     */
+    await page.goto(`${BASE}/search?display=pagination`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("article", { timeout: 30000 });
     const page1 = await renderedIds(page);
 
-    await page.goto(`${BASE}/search?curr=2`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${BASE}/search?curr=2&display=pagination`, { waitUntil: "domcontentloaded" });
     await page.waitForSelector("article", { timeout: 30000 });
     const page2 = await renderedIds(page);
 
@@ -485,6 +490,45 @@ await withPage(async (page) => {
     report(
         "the depth is not carried in the address bar",
         !after.search.includes("curr=") ? null : `the URL was ${after.search}`,
+    );
+});
+
+/* ── A stale page parameter cannot seed the infinite accumulation ─────────── */
+
+await withPage(async (page) => {
+    await gotoAndSettle(page, "/");
+    await page.waitForTimeout(500);
+    const firstOfPageOne = await page.evaluate(
+        () => document.querySelector("article a")?.getAttribute("href") ?? "",
+    );
+
+    /*
+     * Infinite scroll accumulates, so a `curr` in the URL names a depth the visitor reached by scrolling rather than a
+     * place they asked to be. Read as a starting page it begins the list part-way in, which is what a return to the list
+     * used to do.
+     */
+    await page.goto(`${BASE}/?curr=3`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("article", { timeout: 30000 });
+    await page.waitForTimeout(900);
+
+    const seeded = await page.evaluate(
+        () => document.querySelector("article a")?.getAttribute("href") ?? "",
+    );
+    report(
+        "a page parameter does not start infinite scroll part-way in",
+        seeded === firstOfPageOne ? null : `the list began at ${seeded.slice(0, 24)}`,
+    );
+
+    // Pagination does have pages, so the same parameter still selects one there.
+    await page.goto(`${BASE}/search?curr=2&display=pagination`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("article", { timeout: 30000 });
+    await page.waitForTimeout(900);
+    const pager = await page.evaluate(
+        () => document.querySelector(".ant-pagination-item-active")?.textContent ?? "",
+    );
+    report(
+        "pagination still selects the requested page",
+        pager.trim() === "2" ? null : `the pager marked ${pager || "nothing"} as current`,
     );
 });
 
