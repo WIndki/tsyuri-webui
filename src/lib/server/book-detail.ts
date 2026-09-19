@@ -9,8 +9,7 @@ import { isUpstreamSuccess } from "@/lib/api/upstream-types";
 import {
     REVALIDATE,
     UPSTREAM_SEARCH_PATH,
-    UPSTREAM_TIMEOUT_MS,
-    upstreamHeaders,
+    UPSTREAM_TIMEOUT_MS,    upstreamHeaders,
     upstreamUrl,
 } from "@/lib/api/upstream";
 import { BOOK_INDEX_CACHE_TAG } from "@/lib/server/book-index";
@@ -36,6 +35,7 @@ import { BOOK_INDEX_CACHE_TAG } from "@/lib/server/book-index";
  * shared link could resolve to a different book than the one that was shared. A miss returns
  * `null` and the route renders `notFound()`.
  */
+
 async function fetchBookByIdUncached(
     id: string,
     title: string,

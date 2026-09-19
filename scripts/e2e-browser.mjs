@@ -532,6 +532,46 @@ await withPage(async (page) => {
     );
 });
 
+/* ── Prefetching is bounded, because each one is an upstream lookup ───────── */
+
+await withPage(async (page) => {
+    const prefetched = new Set();
+    page.on("request", (request) => {
+        const match = request.url().match(/\/book\/(\d+)/);
+        if (match) prefetched.add(match[1]);
+    });
+
+    await page.goto(`${BASE}/`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("article", { timeout: 60000 });
+    await page.waitForTimeout(8000);
+
+    /*
+     * Upstream has no detail endpoint, so each prefetched record costs a full search there. The default is to
+     * prefetch every link that scrolls into view, which for a 24-card page issued a lookup per card. Two is the
+     * bound, so this asserts the count rather than merely that it is smaller than the page.
+     */
+    report(
+        "a page of results prefetches at most two records",
+        prefetched.size <= 2 ? null : `prefetched ${prefetched.size} records: ${[...prefetched].join(", ")}`,
+    );
+
+    // Scrolling appends pages; each batch may prepare its own two, so the total grows in twos rather than per card.
+    await page.mouse.move(700, 400);
+    for (let i = 0; i < 4; i += 1) {
+        await page.mouse.wheel(0, 1500);
+        await page.waitForTimeout(1200);
+    }
+    await page.waitForTimeout(6000);
+
+    const cards = await page.locator("article").count();
+    report(
+        "scrolling does not prefetch every card it loads",
+        prefetched.size <= 6
+            ? null
+            : `${prefetched.size} records were prefetched for ${cards} cards`,
+    );
+});
+
 /* ── Display mode is part of the URL, so the server renders the right variant ─ */
 
 await withPage(async (page) => {

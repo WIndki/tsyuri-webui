@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-
 import { Pagination } from "antd";
 
 import { BookCard } from "@/components/book/book-card";
 import { ResultsSkeleton } from "@/components/book/results-skeleton";
 import type { Book, BookPage } from "@/lib/api/book";
-import { toSearchParams, type SearchQuery } from "@/lib/search/query";
+import { toBookHref, toSearchParams, type SearchQuery } from "@/lib/search/query";
+import { usePrefetchFirst } from "@/lib/search/use-prefetch-first";
 import { useSearchNavigation } from "@/lib/search/use-search-navigation";
 import { useUiStore, setRetryAction } from "@/lib/search/ui-store";
 import { loadBookPage } from "@/lib/server/book-actions";
@@ -54,6 +54,17 @@ export function ResultsIsland({ initialPage, query, now, fromHref }: ResultsIsla
     const isWaiting = useUiStore((state) => state.isWaiting);
     const expectedCount = useUiStore((state) => state.expectedCount);
     const endWait = useUiStore((state) => state.endWait);
+
+    /*
+     * The first cards of the rendered page, prepared for a click.
+     *
+     * The links themselves do not prefetch, so this is what bounds the work: a page of results costs two upstream lookups
+     * rather than one per card that scrolls past.
+     */
+    usePrefetchFirst(
+        initialPage.items.map((book) => toBookHref(book, fromHref)),
+        queryKey,
+    );
 
     /*
      * A payload means the wait is over.
@@ -246,6 +257,17 @@ function InfiniteResults({ initialPage, query, now, fromHref }: InfiniteResultsP
      * repeat out of an effect.
      */
     setRetryAction(loadNext);
+
+    /*
+     * Prepare the cards the visitor has just reached.
+     *
+     * Keyed on the page count, so each appended page contributes its own bounded prefetch rather than the whole list being
+     * prepared at once.
+     */
+    usePrefetchFirst(
+        books.map((book) => toBookHref(book, fromHref)),
+        String(loadedPage),
+    );
 
     // Cards appended after the first page carry the entrance animation; the first page does not, because it
     // is already painted when the island hydrates and replaying the animation there would read as a flicker

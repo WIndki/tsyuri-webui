@@ -5,6 +5,7 @@ import { BookMetaInline } from "@/components/book/book-meta-list";
 import { LinkPendingHint } from "@/components/book/link-pending-hint";
 import type { Book } from "@/lib/api/book";
 import { truncate } from "@/lib/format";
+import { toBookHref } from "@/lib/search/query";
 
 import styles from "./book-card.module.css";
 
@@ -47,7 +48,7 @@ interface BookCardProps {
  * the same destination; announcing the title twice would be noise.
  */
 export function BookCard({ book, now, from, priority = false, animate = false }: BookCardProps) {
-    const href = `/book/${book.id}?title=${encodeURIComponent(book.title)}&from=${encodeURIComponent(from)}`;
+    const href = toBookHref(book, from);
 
     return (
         <article className={animate ? `${styles.card} ${styles.enter}` : styles.card}>
@@ -60,7 +61,13 @@ export function BookCard({ book, now, from, priority = false, animate = false }:
 
             <div className={styles.body}>
                 <h3 className={styles.title}>
-                    <Link href={href} className={styles.link} title={book.title}>
+                    {/*
+                     * `prefetch={false}` because the default prefetches every link that scrolls into view, and each of
+                     * these costs a full upstream search. A page of results is 24 links, so scrolling the grid issued
+                     * dozens of lookups for records most visitors never open. The results island prefetches the first
+                     * few instead.
+                     */}
+                    <Link href={href} className={styles.link} title={book.title} prefetch={false}>
                         {truncate(book.title, 44)}
                         {/*
                          * Reads the pending state of this link. It has to be a child of the `Link`, which

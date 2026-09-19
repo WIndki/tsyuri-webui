@@ -284,6 +284,19 @@ export function hasActiveFilters(query: SearchQuery): boolean {
     return countActiveFilters(query) > 0 || query.keyword.length > 0;
 }
 
+/**
+ * The URL of a book's record.
+ *
+ * Built here rather than inside the card, because two places need the identical string: the link the card renders, and
+ * the prefetch the results island issues for the first cards. A second construction would let the prefetched URL drift
+ * from the linked one, and a prefetch that does not match its link is a request that helps nobody.
+ *
+ * `from` carries the result view the visitor is looking at, so closing the record returns them to those filters.
+ */
+export function toBookHref(book: { id: string; title: string }, from: string): string {
+    return `/book/${book.id}?title=${encodeURIComponent(book.title)}&from=${encodeURIComponent(from)}`;
+}
+
 /** Number of facet filters currently applied, for the collapsed-panel badge. */
 export function countActiveFilters(facets: FacetValues): number {
     return [
