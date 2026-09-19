@@ -50,12 +50,13 @@ async function sample(page, action, settleMs = 3500) {
     await page.evaluate(() => {
         window.__samples = [];
         const record = () => {
-            const busy = document.querySelectorAll('[aria-busy="true"]').length;
             window.__samples.push({
                 at: Math.round(performance.now()),
                 skeletons: document.querySelectorAll('[class*="skeleton"]').length,
                 articles: document.querySelectorAll("article").length,
-                busy,
+                busy: document.querySelectorAll('[aria-busy="true"]').length,
+                // The record's own placeholder, named so it cannot be confused with the grid's.
+                recordPlaceholder: document.querySelectorAll('[data-placeholder="book-detail"]').length,
             });
         };
         record();
@@ -154,7 +155,7 @@ await withPage(async (page) => {
     );
 });
 
-/* ── Clicking a book shows the detail skeleton ─────────────────────────────── */
+/* ── Clicking a book shows the record's own placeholder ───────────────────── */
 
 await withPage(async (page) => {
     await page.goto(BASE, { waitUntil: "domcontentloaded" });
@@ -164,25 +165,28 @@ await withPage(async (page) => {
     /*
      * Sampled after a click rather than after a document load.
      *
-     * A `loading.tsx` fallback is streamed inside the response of a full page load, so by the time the driver
-     * can query the document the record has already arrived and the placeholder is gone. Clicking is what
-     * exercises the case that matters: a client navigation whose route segment still has to be fetched.
+     * A `loading.tsx` fallback is streamed inside the response of a full page load, so by the time the driver can
+     * query the document the record has arrived and the placeholder is gone. Clicking exercises the case that
+     * matters: a client navigation whose route segment still has to be fetched.
+     *
+     * The sample counts the record's own placeholder by name. The results grid shows placeholders as well, and both
+     * regions are `aria-busy`, so counting busy regions alone would not distinguish them.
      */
     const samples = await sample(page, async () => {
         await page.locator("article a").first().click();
         await page.waitForURL(/\/book\/\d+/, { timeout: 30000 });
     });
 
-    const sawPlaceholder = samples.some((s) => s.busy > 0 || s.skeletons > 0);
-    const sawHeading = await page.locator("h1").count();
+    const sawRecordPlaceholder = samples.some((s) => s.recordPlaceholder > 0);
+    const sawRecord = await page.locator(".ant-modal h1").count();
 
     report(
-        "clicking a book shows a placeholder while the record is resolved",
-        sawPlaceholder ? null : "no placeholder observed during the navigation",
+        "clicking a book shows the record's placeholder while it resolves",
+        sawRecordPlaceholder ? null : "the record placeholder was never observed",
     );
     report(
-        "the detail page then renders the record",
-        sawHeading > 0 ? null : "no heading appeared",
+        "the record then renders in the dialog",
+        sawRecord > 0 ? null : "the dialog rendered no record",
     );
 });
 

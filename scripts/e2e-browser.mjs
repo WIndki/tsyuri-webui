@@ -193,22 +193,94 @@ await withPage(async (page) => {
     );
 });
 
-/* ── A card click opens the detail page ───────────────────────────────────── */
+/* ── A card click opens the record over the list, and back closes it ───────── */
+
+await withPage(async (page) => {
+    await gotoAndSettle(page, "/");
+    const href = await page.locator("article a").first().getAttribute("href");
+    const cardsBefore = await page.locator("article").count();
+
+    await page.locator("article a").first().click();
+    await page.waitForURL(/\/book\/\d+/, { timeout: 20000 });
+
+    const modal = page.locator(".ant-modal");
+    await modal.waitFor({ state: "visible", timeout: 20000 });
+
+    /*
+     * The dialog now opens as soon as the navigation is intercepted, before the record resolves, so its heading is not
+     * there yet. Waiting for the heading is waiting for the record; the placeholder check in the loading suite covers
+     * the state in between.
+     */
+    await modal.locator("h1").waitFor({ state: "visible", timeout: 30000 });
+
+    const opened = await page.evaluate((before) => ({
+        // The dialog carries the heading, and the grid behind it was never unmounted — which is the whole point of
+        // intercepting the navigation rather than replacing the page.
+        heading: document.querySelector(".ant-modal h1")?.textContent?.trim() ?? "",
+        cardsBehind: document.querySelectorAll("article").length,
+        expectedBehind: before,
+        url: window.location.pathname,
+    }), cardsBefore);
+
+    report(
+        "clicking a card opens the record in a dialog",
+        opened.heading.length > 0 ? null : "the dialog rendered no heading",
+    );
+    report(
+        "the list stays on screen behind the dialog",
+        opened.cardsBehind >= opened.expectedBehind
+            ? null
+            : `only ${opened.cardsBehind} of ${opened.expectedBehind} cards remained`,
+    );
+    report(
+        "the address bar shows the book",
+        /^\/book\/\d+$/.test(opened.url) ? null : `the path was ${opened.url}`,
+    );
+
+    // Back closes the record and returns to the results, rather than leaving the application.
+    await page.goBack();
+    await page.waitForTimeout(1500);
+    const closed = await page.evaluate(() => ({
+        modals: document.querySelectorAll(".ant-modal").length,
+        path: window.location.pathname,
+    }));
+    report(
+        "the back button closes the dialog and returns to the results",
+        closed.modals === 0 && closed.path === "/" ? null : `path=${closed.path} modals=${closed.modals}`,
+    );
+
+    report("card link points at a book route", /^\/book\/\d+/.test(href ?? "") ? null : `href was ${href}`);
+});
+
+/* ── Opening a book URL directly renders the full page, not the dialog ─────── */
 
 await withPage(async (page) => {
     await gotoAndSettle(page, "/");
     const href = await page.locator("article a").first().getAttribute("href");
 
-    await page.locator("article a").first().click();
-    await page.waitForURL(/\/book\/\d+/, { timeout: 20000 });
-    await page.waitForSelector("h1", { timeout: 20000 });
+    /*
+     * Interception only applies to a client navigation. A direct visit — a shared link, a reload, a crawler — has to
+     * render the record as a page, which is why the same URL is served by two routes.
+     */
+    await page.goto(`${BASE}${href}`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("h1", { timeout: 30000 });
+    await page.waitForTimeout(500);
 
-    const heading = await page.locator("h1").textContent();
+    const direct = await page.evaluate(() => ({
+        modals: document.querySelectorAll(".ant-modal").length,
+        hasBackLink: [...document.querySelectorAll("button")].some((node) =>
+            /返回结果/.test(node.textContent ?? ""),
+        ),
+    }));
+
     report(
-        "clicking a card opens its detail page",
-        heading && heading.trim().length > 0 ? null : "detail page rendered no heading",
+        "a direct visit to a book URL renders the full page",
+        direct.modals === 0 ? null : "a dialog was rendered for a direct visit",
     );
-    report("card link points at a book route", /^\/book\/\d+/.test(href ?? "") ? null : `href was ${href}`);
+    report(
+        "the full page offers a way back to the results",
+        direct.hasBackLink ? null : "no back control was found",
+    );
 });
 
 /* ── Display mode is part of the URL, so the server renders the right variant ─ */

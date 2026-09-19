@@ -1,14 +1,14 @@
 /*
- * Route-level loading placeholder for the book detail page.
+ * The record's placeholder.
  *
- * Dimensions match `page.module.css`, so the real page replaces this without moving anything.
+ * Dimensions match `book-detail-view.module.css`, so the record replaces this without moving anything, and the
+ * breakpoint matches so the placeholder stacks at the same width the record does.
  */
 
 .page {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    padding-top: 8px;
 }
 
 .back {
@@ -18,8 +18,8 @@
 
 .layout {
     display: grid;
-    gap: 28px;
-    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 24px;
+    grid-template-columns: 240px minmax(0, 1fr);
     align-items: start;
 }
 
@@ -38,7 +38,7 @@
 
 .title {
     width: 70%;
-    height: 34px;
+    height: 32px;
 }
 
 .author {
@@ -105,14 +105,18 @@
     margin-bottom: 0;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
     .layout {
-        gap: 18px;
+        gap: 16px;
         grid-template-columns: minmax(0, 1fr);
     }
 
     .cover {
-        max-width: 200px;
+        max-width: 180px;
         margin: 0 auto;
+    }
+
+    .description {
+        padding: 16px;
     }
 }

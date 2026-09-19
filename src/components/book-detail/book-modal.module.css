@@ -1,0 +1,18 @@
+/*
+ * The book dialog.
+ *
+ * Only what antd's own dialog does not already handle. The padding is trimmed because the record brings its own
+ * spacing, and the description panel runs to the dialog's edges so it reads as a section rather than as a card
+ * inside a card.
+ */
+
+.body {
+    padding: 4px 0 0;
+}
+
+/* On a phone the dialog has the viewport, so the record gets the whole height instead of a scrolled box. */
+@media (max-width: 640px) {
+    .body {
+        max-height: none !important;
+    }
+}
