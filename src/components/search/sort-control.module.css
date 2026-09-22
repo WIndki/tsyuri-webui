@@ -1,0 +1,33 @@
+/*
+ * The ordering row.
+ *
+ * One flex container with two children, so the control can be told to shrink. The row starts stacked because the control's
+ * min-content width — about 316px for four options — does not leave room for a label on a narrow panel, and two columns
+ * appear once there is.
+ */
+
+.row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+}
+
+.row > :global(.ant-segmented) {
+    width: 100%;
+    min-width: 0;
+}
+
+@media (min-width: 576px) {
+    .row {
+        flex-direction: row;
+        gap: 10px;
+        align-items: center;
+    }
+
+    /* `min-width: 0` is what actually lets the control shrink below its content width instead of overflowing. */
+    .row > :global(.ant-segmented) {
+        flex: 1;
+        min-width: 0;
+    }
+}
