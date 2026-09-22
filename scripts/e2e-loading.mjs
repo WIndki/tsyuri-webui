@@ -108,50 +108,47 @@ await withPage(async (page) => {
     /*
      * The control's own state changes before the results do.
      *
-     * What is asserted is the checked input, not the selected styling: antd derives the styling from the `value`
-     * prop, which only updates when the committed query arrives, while the input state changes as soon as the
-     * visitor clicks. Asserting the styling would be asserting something the component does not promise.
-     *
-     * The ordering is what matters here — before the navigation, not after it.
+     * Measured on the ordering control, whose selection antd renders from its internal value: clicking an item moves the
+     * input and the thumb on the same frame, while the results are still the previous ones. The ordering is what matters
+     * here — before the navigation, not after it.
      */
     const observed = await page.evaluate(async () => {
-        const findStatus = () => {
-            const groups = [...document.querySelectorAll(".ant-segmented")];
-            // The sort control is first; the status control is the one holding 已完结.
-            return groups.find((group) =>
-                [...group.querySelectorAll(".ant-segmented-item-label")].some((node) =>
-                    node.textContent?.includes("已完结"),
-                ),
+        const group = document.querySelector('[aria-label="结果排序"]');
+        /*
+         * The checked property, not the selected class: antd swaps the class for a transitional one while the thumb
+         * animates, so the class is briefly absent. The checkbox state is what the control has actually committed to.
+         */
+        const checkedLabel = () => {
+            const item = [...group.querySelectorAll(".ant-segmented-item")].find((node) =>
+                node.querySelector("input")?.checked,
             );
+            return item?.textContent?.trim() ?? null;
         };
 
-        const group = findStatus();
-        const before = group?.querySelector(".ant-segmented-item-selected .ant-segmented-item-label")
-            ?.textContent;
+        const before = checkedLabel();
 
         const target = [...group.querySelectorAll(".ant-segmented-item-label")].find((node) =>
-            node.textContent?.includes("已完结"),
+            node.textContent?.includes("字数最多"),
         );
         target.click();
 
         // One frame later: the click has been handled, the server has not answered.
         await new Promise((resolve) => requestAnimationFrame(resolve));
 
-        const thumb = group.querySelector(".ant-segmented-thumb");
         return {
             before,
-            urlChanged: window.location.search.includes("bookStatus"),
-            thumbLeft: thumb ? Math.round(thumb.getBoundingClientRect().left) : null,
+            after: checkedLabel(),
+            urlChanged: window.location.search.includes("sort="),
         };
     });
 
     report(
-        "the facet control moves before the results arrive",
+        "the control reacts before the results arrive",
         observed.urlChanged
             ? "the URL had already changed, so the ordering could not be observed"
-            : observed.thumbLeft !== null
+            : observed.after === "字数最多" && observed.before !== "字数最多"
               ? null
-              : "no selected indicator was found on the control",
+              : `the control went from ${observed.before} to ${observed.after}`,
     );
 });
 

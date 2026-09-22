@@ -689,6 +689,143 @@ await withPage(async (page) => {
     );
 });
 
+/**
+ * Runs `check` on a phone-sized context with touch enabled.
+ *
+ * A separate helper because the mobile faults are not reachable from a desktop context: one is a min-content width that
+ * only exceeds a narrow viewport, and the other is a touch gesture that a wheel does not reproduce.
+ */
+async function withPhone(viewport, run) {
+    const context = await browser.newContext({ viewport, hasTouch: true, isMobile: true });
+    const page = await context.newPage();
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    try {
+        return await run(page, errors, context);
+    } finally {
+        await context.close();
+    }
+}
+
+/** Drags a finger up the page, the way a scroll gesture arrives from a screen. */
+async function dragUp(context, page, x, fromY, distance, steps = 8) {
+    const session = await context.newCDPSession(page);
+    await session.send("Input.dispatchTouchEvent", {
+        type: "touchStart",
+        touchPoints: [{ x, y: fromY }],
+    });
+    for (let step = 1; step <= steps; step += 1) {
+        await session.send("Input.dispatchTouchEvent", {
+            type: "touchMove",
+            touchPoints: [{ x, y: fromY - (distance / steps) * step }],
+        });
+    }
+    await session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await page.waitForTimeout(600);
+}
+
+/* ── The docked panel never runs past a phone's edge ──────────────────────── */
+
+for (const width of [320, 390, 412]) {
+    await withPhone({ width, height: 720 }, async (page) => {
+        await page.goto(`${BASE}/`, { waitUntil: "domcontentloaded" });
+        await page.waitForSelector("article", { timeout: 60000 });
+        await page.waitForTimeout(900);
+        // Expanded, because the facet controls are what overflowed: the purity control needed 461px for six options.
+        await page.locator(".ant-collapse-header").click();
+        await page.waitForTimeout(800);
+
+        const result = await page.evaluate(() => {
+            const viewportWidth = window.innerWidth;
+            const dock = document.querySelector("[data-bottom-panel]");
+            const overflowing = [];
+            for (const node of dock.querySelectorAll("*")) {
+                const rect = node.getBoundingClientRect();
+                if (rect.width > 0 && rect.right > viewportWidth + 0.5) {
+                    overflowing.push(`${node.className || node.tagName} → ${Math.round(rect.right)}px`);
+                }
+            }
+            return {
+                viewportWidth,
+                documentWidth: document.documentElement.scrollWidth,
+                overflowing: overflowing.slice(0, 3),
+            };
+        });
+
+        report(
+            `the filter panel fits a ${width}px screen`,
+            result.overflowing.length === 0
+                ? null
+                : `past ${result.viewportWidth}px: ${result.overflowing.join(", ")}`,
+        );
+    });
+}
+
+/* ── The record scrolls under a touch gesture ─────────────────────────────── */
+
+await withPhone({ width: 390, height: 844 }, async (page, errors, context) => {
+    await page.goto(`${BASE}/`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("article", { timeout: 60000 });
+    await page.waitForTimeout(900);
+
+    // A record appended by scrolling, which tends to carry a longer description and so a taller dialog.
+    await page.locator("button", { hasText: "加载下一页" }).scrollIntoViewIfNeeded().catch(() => {});
+    await page.waitForTimeout(6000);
+    const cards = await page.locator("article a").count();
+    await page.locator("article a").nth(cards - 1).tap();
+    await page.locator(".ant-modal h1").waitFor({ state: "visible", timeout: 30000 });
+    await page.waitForTimeout(800);
+
+    const shape = await page.evaluate(() => {
+        const modal = document.querySelector(".ant-modal").getBoundingClientRect();
+        const body = document.querySelector(".ant-modal-body");
+        const wrap = document.querySelector(".ant-modal-wrap");
+        return {
+            tallerThanViewport: modal.height > window.innerHeight,
+            bodyScrolls: body.scrollHeight > body.clientHeight,
+            wrapScrolls: wrap.scrollHeight > wrap.clientHeight,
+        };
+    });
+
+    /*
+     * The dialog must stay within the viewport with the body as its scroller. When the body's height was unbounded the
+     * dialog grew past the screen and the wrapper scrolled instead, and the body's `overscroll-behavior: contain` then
+     * stopped the touch gesture from chaining to it: the record could not be scrolled at all. A wheel is not chained,
+     * so this only ever appeared under touch.
+     */
+    report(
+        "the record keeps the dialog within the viewport and scrolls inside it",
+        shape.tallerThanViewport
+            ? "the dialog grew past the viewport, so the wrapper would be the scroller"
+            : !shape.bodyScrolls
+              ? "the record did not need to scroll, so the gesture could not be observed"
+              : !shape.wrapScrolls
+                ? null
+                : "the wrapper is scrolling, which blocks the touch gesture",
+    );
+
+    const box = await page.locator(".ant-modal-body").boundingBox();
+    const scrollBefore = await page.evaluate(
+        () => document.querySelector(".ant-modal-body").scrollTop,
+    );
+    await dragUp(context, page, box.x + box.width / 2, box.y + box.height * 0.7, 260);
+    const scrollAfter = await page.evaluate(
+        () => document.querySelector(".ant-modal-body").scrollTop,
+    );
+
+    report(
+        "dragging on the record scrolls it",
+        scrollAfter > scrollBefore
+            ? null
+            : `the record stayed at ${scrollBefore} after a drag`,
+    );
+
+    report(
+        "no uncaught errors while touching the record",
+        errors.length === 0 ? null : errors.join(" | ").slice(0, 200),
+    );
+});
+
 await browser.close();
 
 console.log(`\n${passed} passed, ${failed} failed`);

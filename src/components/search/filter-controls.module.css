@@ -1,0 +1,29 @@
+/*
+ * The facet controls.
+ *
+ * A grid rather than rows of inline controls. Inline rows sized themselves to their content, so the widest control
+ * pushed past the panel: six purity options as a segmented control needed 461px, the document hides horizontal overflow,
+ * and the last options were simply clipped on a phone.
+ *
+ * `auto-fit` with a minimum column keeps every control the same width and reflows from five columns to two as the panel
+ * narrows, so nothing depends on a control's content width. `minmax(0, 1fr)` is what allows a column to be narrower than
+ * its content instead of overflowing.
+ */
+
+.grid {
+    display: grid;
+    gap: 10px 12px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+    width: 100%;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.field > :global(.ant-select) {
+    width: 100%;
+}

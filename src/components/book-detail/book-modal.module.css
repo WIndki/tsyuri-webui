@@ -16,10 +16,19 @@
     padding: 16px 20px 20px !important;
 }
 
-/* On a phone the dialog has the viewport, so the record gets the whole height instead of a scrolled box. */
+/*
+ * On a phone the body keeps a height bound, so it stays the element that scrolls.
+ *
+ * Removing the bound let the dialog grow past the viewport and left the wrapper scrolling instead. The body still
+ * declared `overscroll-behavior: contain`, which stops a touch gesture from chaining to an ancestor: a scroll that began
+ * on the record went nowhere, and the record could not be scrolled at all. A wheel is not chained, so the fault appeared
+ * only under touch.
+ *
+ * The bound is a little larger than on a wide screen, so the record gets most of the height.
+ */
 @media (max-width: 640px) {
     .body {
-        max-height: none !important;
+        max-height: 82vh !important;
         padding: 12px 14px 16px !important;
     }
 }
